@@ -1,5 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from math import comb
+from Distributions import sim_Bin, ideal_Bin
 
 
 class GeometricOFrame(tk.Frame):
@@ -16,12 +20,15 @@ class GeometricOFrame(tk.Frame):
 
 
 class BinomialOFrame(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master, onrelease):
         super().__init__(master)
+        self.onpress = onrelease
         self.p = tk.Label(self, text="p", )
         self.pentry = tk.Entry(self)
         self.n = tk.Label(self, text="n", )
         self.nentry = tk.Entry(self)
+        self.nentry.bind("<KeyRelease>", self.onKeyRelease)
+        self.pentry.bind("<KeyRelease>", self.onKeyRelease)
 
         self.place_widgets()
 
@@ -30,6 +37,9 @@ class BinomialOFrame(tk.Frame):
         self.pentry.grid(column=1, row=0, sticky="nsew")
         self.n.grid(column=0, row=1, sticky="nsew")
         self.nentry.grid(column=1, row=1, sticky="nsew")
+
+    def onKeyRelease(self, event):
+        self.onpress()
 
 
 class NormalOFrame(tk.Frame):
@@ -57,10 +67,90 @@ class GeometricGFrame(tk.Frame):
 
 
 class BinomialGFrame(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master):
         super().__init__(master)
-        self.label = tk.Label(self, text="Binomial Distribution", bg="lightgreen")
-        self.label.pack(expand=True)
+        self.master = master  # Reference to the Application class
+        self.figure = plt.Figure(figsize=(5, 4), dpi=100)
+        self.ax = self.figure.add_subplot(111)
+        self.canvas = None  # Initialize canvas to None
+
+        self.plot_graph()  # Initial plot
+
+    def plot_graph(self):
+        # Clear the existing plot
+        self.ax.clear()
+        try:
+            n_str = self.master.current_O_frame.nentry.get()
+            p_str = self.master.current_O_frame.pentry.get()
+            num_str = self.master.num.get()
+            if not n_str or not p_str:
+                raise ValueError("Please enter values for n and p.")
+
+            n = int(n_str)
+            p = float(p_str)
+            num = int(num_str)
+
+            if not (0 <= p <= 1):
+                raise ValueError("p must be between 0 and 1.")
+
+            if n < 0:
+                raise ValueError("n must be a non-negative integer.")
+
+            # Generate data for Binomial Distribution
+            results = [sim_Bin(n, p) for _ in range(num)]  # List of results from sim_Bin
+            # Count the occurrences of each result
+            counts = {}
+            for result in results:
+                counts[result] = counts.get(result, 0) + 1
+
+            if not self.master.ideal.get():
+                # Prepare data for plotting
+                x = range(n+1)  # Possible number of successes
+                y = [counts.get(i, 0) for i in x]  # Number of times each success count occurred
+
+                # Plot the bar chart
+                self.ax.bar(x, y, color="lightgreen")
+
+                self.ax.set_title(f"Binomial Distribution (Simulated {num} trials)")
+                self.ax.set_xlabel("Number of Successes")
+                self.ax.set_ylabel("Frequency")
+
+            else:
+                x1 = list(counts.keys())  # Possible number of successes
+                x2 = range(n+1)
+                y1 = [counts.get(i, 0) for i in x2]
+                y2 = [num*ideal_Bin(n,r,p) for r in x2]
+
+                bar_width = 0.35
+                index = range(len(x2))
+                self.ax.bar(index, y1, bar_width, color="lightgreen", label="Simulation 1")
+                # Plot the second set of bars, shifted to the right
+                self.ax.bar([i + bar_width for i in index], y2, bar_width, color="orange", label="Ideal")
+
+                self.ax.set_title(f"Binomial Distribution (Simulated {num} trials, and ideal)")
+                self.ax.set_xlabel("Number of Successes")
+                self.ax.set_ylabel("Frequency")
+                self.ax.set_xticks([i + bar_width / 2 for i in index])  # Set x-ticks in the middle of the two bars
+                self.ax.set_xticklabels(x2)  # Label the x-ticks with the number of successes
+                self.ax.legend()
+
+
+
+
+
+        except ValueError as e:
+            # Handle cases when n or p are not entered or invalid
+            self.ax.text(0.5, 0.5, str(e),
+                         horizontalalignment='center', verticalalignment='center',
+                         transform=self.ax.transAxes, fontsize=12, color='red')  # Show error message
+
+        # Update the canvas
+        if self.canvas:
+            self.canvas.get_tk_widget().destroy()  # Destroy the old canvas
+        self.canvas = FigureCanvasTkAgg(self.figure, self)
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.pack(fill=tk.BOTH, expand=True)
+        self.canvas.draw()
 
 
 class NormalGFrame(tk.Frame):
@@ -79,9 +169,9 @@ class Application(tk.Frame):
         self.current_G_frame = None
         self.combo.bind("<<ComboboxSelected>>", self.on_dist_change)
         self.ideal = tk.BooleanVar()
-        self.idealtoggle = tk.Checkbutton(self, text="show ideal", offvalue=False, onvalue=True, variable=self.ideal)
-        self.num = tk.IntVar(self)
-        self.numspinbox = ttk.Spinbox(self, width=5, textvariable=self.num,)
+        self.idealtoggle = tk.Checkbutton(self, text="show ideal", offvalue=False, onvalue=True, variable=self.ideal,command=self.refreshG)
+        self.num = tk.StringVar(value="0")
+        self.numspinbox = ttk.Spinbox(self, width=5, textvariable=self.num, from_=0, to=100, command=self.on_num_change)
 
         self.place_widgets()
 
@@ -104,6 +194,22 @@ class Application(tk.Frame):
         self.dist = self.combo.get()  # Update the distribution
         self.change_dist()
 
+    def on_num_change(self):
+        self.num.set(self.numspinbox.get())
+        self.refreshG()
+
+
+    def refreshG(self):
+        if self.dist == "Geometric":
+            self.current_G_frame = GeometricGFrame(self)
+        elif self.dist == "Binomial":
+            if self.current_G_frame is None:
+                self.current_G_frame = BinomialGFrame(self)
+            self.current_G_frame.plot_graph()  # Refresh the graph
+        elif self.dist == "Normal":
+            self.current_G_frame = NormalGFrame(self)
+
+        self.place_widgets()
 
 
     def change_dist(self):
@@ -118,7 +224,7 @@ class Application(tk.Frame):
             self.current_O_frame = GeometricOFrame(self)
             self.current_G_frame = GeometricGFrame(self)
         elif self.dist == "Binomial":
-            self.current_O_frame = BinomialOFrame(self)
+            self.current_O_frame = BinomialOFrame(self,self.refreshG)
             self.current_G_frame = BinomialGFrame(self)
         elif self.dist == "Normal":
             self.current_O_frame = NormalOFrame(self)

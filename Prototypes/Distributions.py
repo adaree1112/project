@@ -1,7 +1,11 @@
 import random
-
+from math import comb
 def sim_Bin(n,p):
-    return random.binomialvariate(n,p)
+    r=random.binomialvariate(n,p)
+    return r
+
+def ideal_Bin(n,r,p):
+    return comb(n,r) * p**r * (1-p)**(n-r)
 
 def sim_Geo(p):
     c=1
