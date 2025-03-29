@@ -2,15 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from math import comb
-from Distributions import sim_Bin, ideal_Bin
+from Distributions import sim_Bin, ideal_Bin, sim_Geo, ideal_Geo
 
 
 class GeometricOFrame(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master, onrelease):
         super().__init__(master)
+        self.onrelease = onrelease
         self.p = tk.Label(self, text="p", )
         self.pentry = tk.Entry(self)
+        self.pentry.bind("<KeyRelease>", self.onKeyRelease)
 
         self.place_widgets()
 
@@ -18,11 +19,14 @@ class GeometricOFrame(tk.Frame):
         self.p.grid(column=0, row=0, sticky="nsew")
         self.pentry.grid(column=1, row=0, sticky="nsew")
 
+    def onKeyRelease(self, event):
+        self.onrelease()
+
 
 class BinomialOFrame(tk.Frame):
     def __init__(self, master, onrelease):
         super().__init__(master)
-        self.onpress = onrelease
+        self.onrelease = onrelease
         self.p = tk.Label(self, text="p", )
         self.pentry = tk.Entry(self)
         self.n = tk.Label(self, text="n", )
@@ -39,7 +43,7 @@ class BinomialOFrame(tk.Frame):
         self.nentry.grid(column=1, row=1, sticky="nsew")
 
     def onKeyRelease(self, event):
-        self.onpress()
+        self.onrelease()
 
 
 class NormalOFrame(tk.Frame):
@@ -60,11 +64,83 @@ class NormalOFrame(tk.Frame):
 
 
 class GeometricGFrame(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master):
         super().__init__(master)
-        self.label = tk.Label(self, text="Geometric Distribution", bg="lightblue")
-        self.label.pack(expand=True)
+        self.master = master  # Reference to the Application class
+        self.figure = plt.Figure(figsize=(5, 4), dpi=100)
+        self.ax = self.figure.add_subplot(111)
+        self.canvas = None  # Initialize canvas to None
 
+        self.plot_graph()  # Initial plot
+
+    def plot_graph(self):
+        # Clear the existing plot
+        self.ax.clear()
+        try:
+            p_str = self.master.current_O_frame.pentry.get()
+            num_str = self.master.num.get()
+            if not p_str:
+                raise ValueError("Please enter values for p.")
+            if int(num_str)<1:
+                raise ValueError("Please enter values for num")
+            p = float(p_str)
+            num = int(num_str)
+
+            if not (0 <= p <= 1):
+                raise ValueError("p must be between 0 and 1.")
+
+
+            # Generate data for Binomial Distribution
+            results = [sim_Geo(p) for _ in range(num)]  # List of results from sim_Bin
+            # Count the occurrences of each result
+            counts = {}
+            for result in results:
+                counts[result] = counts.get(result, 0) + 1
+
+            if not self.master.ideal.get():
+                # Prepare data for plotting
+                x = range(max(results)+1)  # Possible number of successes
+                y = [counts.get(i, 0)/num for i in x ]  # Number of times each success count occurred
+
+                # Plot the bar chart
+                self.ax.bar(x, y, color="lightgreen")
+
+                self.ax.set_title(f"Geometric Distribution (Simulated {num} trials)")
+                self.ax.set_xlabel("Number of Trials Required for a Success")
+                self.ax.set_ylabel("Probability")
+
+            else:
+                x1 = list(counts.keys())  # Possible number of successes
+                x2 = range(max(results)+1)
+                y1 = [counts.get(i, 0)/num for i in x2]
+                y2 = [ideal_Geo(r,p) for r in x2]
+
+                bar_width = 0.35
+                index = range(len(x2))
+                self.ax.bar(index, y1, bar_width, color="lightgreen", label="Simulation 1")
+                # Plot the second set of bars, shifted to the right
+                self.ax.bar([i + bar_width for i in index], y2, bar_width, color="orange", label="Ideal")
+
+                self.ax.set_title(f"Geometric Distribution (Simulated {num} trials)")
+                self.ax.set_xlabel("Number of Trials Required for a Success")
+                self.ax.set_ylabel("Probability")
+                self.ax.set_xticks([i + bar_width / 2 for i in index])  # Set x-ticks in the middle of the two bars
+                self.ax.set_xticklabels(x2)  # Label the x-ticks with the number of successes
+                self.ax.legend()
+
+        except ValueError as e:
+            # Handle cases when n or p are not entered or invalid
+            self.ax.text(0.5, 0.5, str(e),
+                         horizontalalignment='center', verticalalignment='center',
+                         transform=self.ax.transAxes, fontsize=12, color='red')  # Show error message
+
+        # Update the canvas
+        if self.canvas:
+            self.canvas.get_tk_widget().destroy()  # Destroy the old canvas
+        self.canvas = FigureCanvasTkAgg(self.figure, self)
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.pack(fill=tk.BOTH, expand=True)
+        self.canvas.draw()
 
 class BinomialGFrame(tk.Frame):
     def __init__(self, master):
@@ -85,7 +161,8 @@ class BinomialGFrame(tk.Frame):
             num_str = self.master.num.get()
             if not n_str or not p_str:
                 raise ValueError("Please enter values for n and p.")
-
+            if int(num_str)<1:
+                raise ValueError("Please enter values for num")
             n = int(n_str)
             p = float(p_str)
             num = int(num_str)
@@ -102,24 +179,23 @@ class BinomialGFrame(tk.Frame):
             counts = {}
             for result in results:
                 counts[result] = counts.get(result, 0) + 1
-
             if not self.master.ideal.get():
                 # Prepare data for plotting
                 x = range(n+1)  # Possible number of successes
-                y = [counts.get(i, 0) for i in x]  # Number of times each success count occurred
+                y = [counts.get(i, 0)/num  for i in x]  # Number of times each success count occurred
 
                 # Plot the bar chart
                 self.ax.bar(x, y, color="lightgreen")
 
                 self.ax.set_title(f"Binomial Distribution (Simulated {num} trials)")
                 self.ax.set_xlabel("Number of Successes")
-                self.ax.set_ylabel("Frequency")
+                self.ax.set_ylabel("Probability")
 
             else:
                 x1 = list(counts.keys())  # Possible number of successes
                 x2 = range(n+1)
-                y1 = [counts.get(i, 0) for i in x2]
-                y2 = [num*ideal_Bin(n,r,p) for r in x2]
+                y1 = [counts.get(i, 0)/num for i in x2]
+                y2 = [ideal_Bin(n,r,p) for r in x2]
 
                 bar_width = 0.35
                 index = range(len(x2))
@@ -129,7 +205,7 @@ class BinomialGFrame(tk.Frame):
 
                 self.ax.set_title(f"Binomial Distribution (Simulated {num} trials, and ideal)")
                 self.ax.set_xlabel("Number of Successes")
-                self.ax.set_ylabel("Frequency")
+                self.ax.set_ylabel("Probability")
                 self.ax.set_xticks([i + bar_width / 2 for i in index])  # Set x-ticks in the middle of the two bars
                 self.ax.set_xticklabels(x2)  # Label the x-ticks with the number of successes
                 self.ax.legend()
@@ -221,7 +297,7 @@ class Application(tk.Frame):
 
         # Create a new frame based on the selected distribution
         if self.dist == "Geometric":
-            self.current_O_frame = GeometricOFrame(self)
+            self.current_O_frame = GeometricOFrame(self,self.refreshG)
             self.current_G_frame = GeometricGFrame(self)
         elif self.dist == "Binomial":
             self.current_O_frame = BinomialOFrame(self,self.refreshG)
@@ -238,7 +314,7 @@ if __name__ == "__main__":
     w = 400
     h = 300
     root.geometry(f"{w}x{h}+100+100")
-    root.resizable(1, 1)
+    root.resizable(True, True)
     root.title("prototype")
     main_frame = Application(root)
     main_frame.pack(fill=tk.BOTH, expand=True)

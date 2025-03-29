@@ -9,9 +9,15 @@ def ideal_Bin(n,r,p):
 
 def sim_Geo(p):
     c=1
-    while random.random()<p:
+    while random.random()>p:
         c+=1
-    return
+    return c
+
+def ideal_Geo(r,p):
+    if r == 0:
+        return 0
+    else:
+        return p*(1-p)**(r-1)
 
 def sim_Normal(mu,sigma):
     return random.normalvariate(mu,sigma)
