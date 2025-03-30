@@ -1,5 +1,5 @@
 import random
-from math import comb
+from math import comb,sqrt,pi,exp
 def sim_Bin(n,p):
     r=random.binomialvariate(n,p)
     return r
@@ -21,3 +21,6 @@ def ideal_Geo(r,p):
 
 def sim_Normal(mu,sigma):
     return random.normalvariate(mu,sigma)
+
+def ideal_Normal(mu,sigma,r):
+    return (1 / (sigma * sqrt(2 * pi))) * exp(-0.5 * ((r - mu) / sigma) ** 2)
