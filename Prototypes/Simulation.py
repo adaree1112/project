@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from Distributions import sim_Bin, ideal_Bin, sim_Geo, ideal_Geo, sim_Normal,ideal_Normal
 import numpy as np
+from math import sqrt
 
 
 
@@ -268,30 +269,27 @@ class NormalGFrame(tk.Frame):
             # Generate data for Binomial Distribution
             results = [sim_Normal(mu, sig) for _ in range(num)]  # List of results from sim_Bin
             # Count the occurrences of each result
-            counts = {}
-            for i in np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1):
-                counts[i] = sum(1 for r in results if r < i) - sum(counts.values())
+            bin_width = 1  # Define bin width explicitly
+            x = np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , bin_width)
+
+
             if not self.master.ideal.get():
                 # Prepare data for plotting
-                x = np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1)  # Possible number of successes
-                y = [counts.get(i, 0) / num  for i in x]  # Number of times each success count occurred
+                #y = hist  # Normalize by bin width
 
                 # Plot the bar chart
-                self.ax.bar(x, y, color="lightgreen")
+                self.ax.hist(results, bins=x, color="lightgreen", alpha=0.7, density=True)
 
                 self.ax.set_title(f"Normal Distribution (Simulated {num} trials)")
                 self.ax.set_xlabel("")
                 self.ax.set_ylabel("Probability")
 
             else:
-                x = np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1)  # Possible number of successes
-                print(counts)
-                y1 = [counts.get(i, 0) / num for i in x]  # Number of times each success count occurred
-                print(y1)
-                y2 = [ideal_Normal(mu, sig, xi) for xi in x]
+                #y1 = hist  # Number of times each success count occurred
+                y2 = [ideal_Normal(mu, sig, xi) for xi in np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , .1)]
                 # Plot the bar chart
-                self.ax.bar(x, y1, color="lightgreen", label="Simulation 1")
-                self.ax.plot(x, y2, color="orange", label="Ideal")
+                self.ax.hist(results, bins=x, color="lightgreen", alpha=0.7, density=True,label="Simulated")
+                self.ax.plot(np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , .1), y2, color="orange", label="Ideal")
                 self.ax.set_title(f"Normal Distribution (Simulated {num} trials)")
                 self.ax.set_xlabel("")
                 self.ax.set_ylabel("Probability")
@@ -385,3 +383,16 @@ class Simulation(tk.Frame):
             self.current_G_frame = NormalGFrame(self)
 
         self.place_widgets()
+
+
+
+if __name__ == "__main__":
+     root=tk.Tk()
+     w=400
+     h=300
+     root.geometry(f"{w}x{h}+100+100")
+     root.resizable(1,1)
+     root.title("prototype")
+     main_frame=Simulation(root)
+     main_frame.pack(fill=tk.BOTH, expand=True)
+     root.mainloop()
