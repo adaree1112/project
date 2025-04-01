@@ -107,7 +107,7 @@ class GeometricGFrame(tk.Frame):
             if not self.master.ideal.get():
                 # Prepare data for plotting
                 x = range(max(results) + 1)  # Possible number of successes
-                y = [counts.get(i, 0) / num for i in x]  # Number of times each success count occurred
+                y = [counts.get(i, 0) / num for i in x]  ####################################################################################ERRORS OCCUR HERE
 
                 # Plot the bar chart
                 self.ax.bar(x, y, color="lightgreen")
@@ -119,7 +119,7 @@ class GeometricGFrame(tk.Frame):
             else:
                 x1 = list(counts.keys())  # Possible number of successes
                 x2 = range(max(results) + 1)
-                y1 = [counts.get(i, 0) / num for i in x2]
+                y1 = [counts.get(i, 0) / num for i in x2]####################################################################################ERRORS OCCUR HERE
                 y2 = [ideal_Geo(r, p) for r in x2]
 
                 bar_width = 0.35
@@ -285,7 +285,9 @@ class NormalGFrame(tk.Frame):
 
             else:
                 x = np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1)  # Possible number of successes
+                print(counts)
                 y1 = [counts.get(i, 0) / num for i in x]  # Number of times each success count occurred
+                print(y1)
                 y2 = [ideal_Normal(mu, sig, xi) for xi in x]
                 # Plot the bar chart
                 self.ax.bar(x, y1, color="lightgreen", label="Simulation 1")
