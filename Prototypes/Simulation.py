@@ -274,7 +274,7 @@ class NormalGFrame(tk.Frame):
             if not self.master.ideal.get():
                 # Prepare data for plotting
                 x = np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1)  # Possible number of successes
-                y = [counts.get(i, 0) / num * 10 for i in x]  # Number of times each success count occurred
+                y = [counts.get(i, 0) / num  for i in x]  # Number of times each success count occurred
 
                 # Plot the bar chart
                 self.ax.bar(x, y, color="lightgreen")
@@ -285,7 +285,7 @@ class NormalGFrame(tk.Frame):
 
             else:
                 x = np.arange(int(min(results)) - 1, int(max(results)) + 1, 0.1)  # Possible number of successes
-                y1 = [counts.get(i, 0) / num * 10 for i in x]  # Number of times each success count occurred
+                y1 = [counts.get(i, 0) / num for i in x]  # Number of times each success count occurred
                 y2 = [ideal_Normal(mu, sig, xi) for xi in x]
                 # Plot the bar chart
                 self.ax.bar(x, y1, color="lightgreen", label="Simulation 1")
