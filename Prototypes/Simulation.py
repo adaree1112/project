@@ -258,7 +258,7 @@ class NormalGFrame(tk.Frame):
                 raise ValueError("Please enter values for μ and σ.")
             if int(num_str) < 1:
                 raise ValueError("Please enter values for num")
-            mu = int(mu_str)
+            mu = float(mu_str)
             sig = float(sig_str)
             num = int(num_str)
 
