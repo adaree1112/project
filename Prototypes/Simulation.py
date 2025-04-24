@@ -71,6 +71,7 @@ class NormalOFrame(tk.Frame):
     def onKeyRelease(self, event):
         self.onrelease()
 
+##dictionary of entries and do it like that
 
 class GeometricGFrame(tk.Frame):
     def __init__(self, master):
