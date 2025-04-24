@@ -20,14 +20,7 @@ class Home(tk.Frame):
 
     def openwindow(self):
         if self.menu.get() == "Game":
-            w = 400
-            h = 300
-            newWindow = tk.Toplevel(self.master)
-            newWindow.title("Ideal")
-            newWindow.geometry(f"{w}x{h}+100+100")
-            newWindow.resizable(True, True)
-            frame = Ideal(newWindow)
-            frame.pack(fill=tk.BOTH, expand=True)
+            pass
         elif self.menu.get() == "Simulation":
             w = 400
             h = 300
@@ -39,7 +32,14 @@ class Home(tk.Frame):
             frame.pack(fill=tk.BOTH, expand=True)
 
         elif self.menu.get() == "Ideal":
-            pass
+            w = 400
+            h = 300
+            newWindow = tk.Toplevel(self.master)
+            newWindow.title("Ideal HAS MANY BUGS - INCOMPLETE")
+            newWindow.geometry(f"{w}x{h}+100+100")
+            newWindow.resizable(True, True)
+            frame = Ideal(newWindow)
+            frame.pack(fill=tk.BOTH, expand=True)
 
 
 
