@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from Simulation import Simulation
+from Ideal import Ideal
 
 class Home(tk.Frame):
     def __init__(self, master=None):
@@ -19,7 +20,14 @@ class Home(tk.Frame):
 
     def openwindow(self):
         if self.menu.get() == "Game":
-            pass
+            w = 400
+            h = 300
+            newWindow = tk.Toplevel(self.master)
+            newWindow.title("Ideal")
+            newWindow.geometry(f"{w}x{h}+100+100")
+            newWindow.resizable(True, True)
+            frame = Ideal(newWindow)
+            frame.pack(fill=tk.BOTH, expand=True)
         elif self.menu.get() == "Simulation":
             w = 400
             h = 300
