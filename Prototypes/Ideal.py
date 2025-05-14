@@ -76,20 +76,44 @@ class CalcFrame(tk.Frame):
         super().__init__(master)
         self.dist=distribution
 
-        self.lradio=tk.Radiobutton(text="P(X<a)")
-        self.uradio=tk.Radiobutton(text="P(X>a)")
-        self.bradio=tk.Radiobutton(text="P(a<X<b)")
-        if self.dist!="Normal":
-            self.eradio=tk.Radiobutton(text="P(X=a)")
+        self.l1 = tk.Label(self, text="P(X", width=2)
+        self.cb = ttk.Combobox(self, values=["<", "≤"]+["="]*(self.dist!="Normal")+["≥", ">","< <", "≤ ≤"], width=2)
+        self.e1 = tk.Entry(self, width=4)
+        self.l2 = tk.Label(self, text=")=", width=2)
+        self.e2 = tk.Entry(self, width=4)
+
+        self.l1a = tk.Label(self, text="P(", width=2)
+        self.l1bvar=tk.StringVar(self)
+        self.l1bvar.set("X")
+
+
+        self.l1b = tk.Label(self, textvariable=self.l1bvar, width=2)
+        self.e3 = tk.Entry(self, width=4)
+
+        self.cb.bind("<<ComboboxSelected>>",self.refresh)
 
         self.place_widgets()
 
     def place_widgets(self):
-        self.lradio.grid(column=0, row=0, sticky="nsew")
-        self.uradio.grid(column=1, row=0, sticky="nsew")
-        self.bradio.grid(column=2, row=0, sticky="nsew")
-        if self.dist!="Normal":
-            self.eradio.grid(column=3, row=0, sticky="nsew")
+        for widget in self.winfo_children():
+            widget.pack_forget()
+        if self.cb.get() != "< <" and self.cb.get() != "≤ ≤":
+            self.l1.pack(side="left")
+            self.cb.pack(side="left")
+        else:
+            self.l1a.pack(side="left")
+            self.e3.pack(side="left")
+            self.l1b.pack(side="left")
+            self.cb.pack(side="left")
+
+
+        self.e1.pack(side="left")
+        self.l2.pack(side="left")
+        self.e2.pack(side="left")
+
+    def refresh(self, *args):
+        self.l1bvar.set(str(self.cb.get())[0]+"X")
+        self.place_widgets()
 
 
 
@@ -175,6 +199,7 @@ class Ideal(tk.Frame):
         elif self.dist == "Normal":
             self.current_O_frame = NormalOFrame(self, self.refreshG)
             self.current_G_frame = NormalGFrame(self)
+        self.current_calc_frame = CalcFrame(self, self.dist)
 
         self.place_widgets()
 

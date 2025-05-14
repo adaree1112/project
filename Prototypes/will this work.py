@@ -6,9 +6,9 @@ class TestFrame (tk.Frame):
           super().__init__(master)
           self.l1=tk.Label(self,text="P(X",width=2)
           self.cb=ttk.Combobox(self,values=["<","≤","=","≥",">"],width=2)
-          self.e1=tk.Entry(self,width=2)
+          self.e1=tk.Entry(self,width=4)
           self.l2=tk.Label(self,text=")=",width=2)
-          self.e2=tk.Entry(self,width=2)
+          self.e2=tk.Entry(self,width=4)
 
           self.place_widgets()
 
