@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from Distributions import sim_Bin, ideal_Bin, sim_Geo, ideal_Geo, sim_Normal,ideal_Normal
+from Distributions import sim_bin, ideal_bin, sim_geo, ideal_geo, sim_normal,ideal_normal
 import numpy as np
 from math import sqrt
 
@@ -100,7 +100,7 @@ class GeometricGFrame(tk.Frame):
                 raise ValueError("p must be between 0 and 1.")
 
             # Generate data for Binomial Distribution
-            results = [sim_Geo(p) for _ in range(num)]  # List of results from sim_Bin
+            results = [sim_geo(p) for _ in range(num)]  # List of results from sim_Bin
             # Count the occurrences of each result
             counts = {}
             for result in results:
@@ -122,7 +122,7 @@ class GeometricGFrame(tk.Frame):
                 x1 = list(counts.keys())  # Possible number of successes
                 x2 = range(max(results) + 1)
                 y1 = [counts.get(i, 0) / num for i in x2]####################################################################################ERRORS OCCUR HERE
-                y2 = [ideal_Geo(r, p) for r in x2]
+                y2 = [ideal_geo(r, p) for r in x2]
 
                 bar_width = 0.35
                 index = range(len(x2))
@@ -184,7 +184,7 @@ class BinomialGFrame(tk.Frame):
                 raise ValueError("n must be a non-negative integer.")
 
             # Generate data for Binomial Distribution
-            results = [sim_Bin(n, p) for _ in range(num)]  # List of results from sim_Bin
+            results = [sim_bin(n, p) for _ in range(num)]  # List of results from sim_Bin
             # Count the occurrences of each result
             counts = {}
             for result in results:
@@ -205,7 +205,7 @@ class BinomialGFrame(tk.Frame):
                 x1 = list(counts.keys())  # Possible number of successes
                 x2 = range(n + 1)
                 y1 = [counts.get(i, 0) / num for i in x2]
-                y2 = [ideal_Bin(n, r, p) for r in x2]
+                y2 = [ideal_bin(n, r, p) for r in x2]
 
                 bar_width = 0.35
                 index = range(len(x2))
@@ -268,7 +268,7 @@ class NormalGFrame(tk.Frame):
                 raise ValueError("sig must not be equal to 0.")
 
             # Generate data for Binomial Distribution
-            results = [sim_Normal(mu, sig) for _ in range(num)]  # List of results from sim_Bin
+            results = [sim_normal(mu, sig) for _ in range(num)]  # List of results from sim_Bin
             # Count the occurrences of each result
             bin_width = 1  # Define bin width explicitly
             x = np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , bin_width)
@@ -287,7 +287,7 @@ class NormalGFrame(tk.Frame):
 
             else:
                 #y1 = hist  # Number of times each success count occurred
-                y2 = [ideal_Normal(mu, sig, xi) for xi in np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , .1)]
+                y2 = [ideal_normal(mu, sig, xi) for xi in np.arange(int(-3 * sqrt(sig)), int(3 * sqrt(sig)), .1)]
                 # Plot the bar chart
                 self.ax.hist(results, bins=x, color="lightgreen", alpha=0.7, density=True,label="Simulated")
                 self.ax.plot(np.arange(int(-3*sqrt(sig)) , int(3*sqrt(sig)) , .1), y2, color="orange", label="Ideal")
