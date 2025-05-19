@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from Distributions import sim_Bin, ideal_Bin, sim_Geo, ideal_Geo, sim_Normal,ideal_Normal
+from Distributions import sim_bin, ideal_bin, sim_geo, ideal_geo, sim_normal,ideal_normal
 import numpy as np
 from math import sqrt
 
@@ -90,6 +90,10 @@ class CalcFrame(tk.Frame):
         self.l1b = tk.Label(self, textvariable=self.l1bvar, width=2)
         self.e3 = tk.Entry(self, width=4)
 
+        self.e1.bind('<KeyRelease>', self.e1_updating)
+        self.e2.bind('<KeyRelease>', self.e2_updating)
+        # self.e3.bind('<KeyRelease>', self.e3_updating)
+
         self.cb.bind("<<ComboboxSelected>>",self.refresh)
 
         self.place_widgets()
@@ -107,6 +111,8 @@ class CalcFrame(tk.Frame):
             self.cb.pack(side="left")
 
 
+
+
         self.e1.pack(side="left")
         self.l2.pack(side="left")
         self.e2.pack(side="left")
@@ -114,6 +120,31 @@ class CalcFrame(tk.Frame):
     def refresh(self, *args):
         self.l1bvar.set(str(self.cb.get())[0]+"X")
         self.place_widgets()
+
+    def e1_updating(self, *args):
+        inp = self.e1.get()
+        if not (inp.isalnum() or inp in ["", " ", "-"","]):
+            try:
+                x=float(inp)
+            except ValueError:
+                x= 0
+
+        if self.cb.get() in "<≤=≥>":
+            self.e2.delete(0, tk.END)
+            self.e2.insert(0, str(3))
+        else:
+            self.e2.delete(0, tk.END)
+
+    def e2_updating(self, *args):
+        inp = self.e2.get()
+        if not (inp.isalnum() or inp in ["", " ", "-"","]):
+            try:
+                x = float(inp)
+            except ValueError:
+                x = 0
+######################################################
+        self.e1.delete(0, tk.END)
+        self.e1.insert(0, str(3))
 
 
 
@@ -168,7 +199,6 @@ class Ideal(tk.Frame):
     def showcalculations(self):
         if self.calculations == False:
             self.calculations = True
-            ### add check boxes for type of calculation < > =
             self.current_calc_frame=CalcFrame(self,self.dist)
             self.refreshG()
 
