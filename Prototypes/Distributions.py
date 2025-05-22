@@ -1,5 +1,6 @@
 import random
 from math import comb,sqrt,pi,exp
+
 def sim_bin(n, p):
     r=random.binomialvariate(n,p)
     return r
@@ -83,7 +84,7 @@ def calc_geo(op, x1, p, x2=None):
     if op == "≤ ≤":
         return sum(ideal_geo(i, p) for i in range(x1,x2+1))
 
-def backwards_calc_geo (op,n,p,pp):
+def backwards_calc_geo (op,p,pp):
     if op == "<":
         k=0
         while calc_geo(op,k,p)<=pp:

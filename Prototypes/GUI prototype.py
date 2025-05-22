@@ -7,7 +7,7 @@ class Home(tk.Frame):
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
         self.master = master
-        self.menu=ttk.Combobox(self, values=["Game","Simulation","Ideal"])
+        self.menu=ttk.Combobox(self, values=["Game","Simulation","Ideal","Custom Piecewise"])
         self.welcome=tk.Label(self, text="Welcome, please select an option and click start")
         self.start = tk.Button(self, text="Start",command=self.openwindow)
 
