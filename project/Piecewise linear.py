@@ -40,9 +40,5 @@ def normalise_piecewise_linear (pieces):
     output=piecewise_linear(points)
     return output
 
-def piecewise_cubic(points):
-    pass
-
-
 print(pieces:=piecewise_linear([(1, 1), (2, 2), (3,1)]))
 print(normalise_piecewise_linear(pieces))
