@@ -9,7 +9,9 @@ def plotpieces(points,pieces):
     for piece in pieces:
         lower,upper,a,b,c,d,=piece
         x=np.linspace(lower,upper,50)
-        y=a*x**3 + b*x**2 + c*x + d
+        y=np.maximum(a*x**3 + b*x**2 + c*x + d,0)
+        #y=a*x**3 + b*x**2 + c*x + d
+
         plt.plot(x,y)
     plt.show()
 if __name__ == '__main__':
