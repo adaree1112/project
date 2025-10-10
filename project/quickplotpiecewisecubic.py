@@ -5,12 +5,13 @@ def plotpieces(points,pieces):
 
     for point in points:
         plt.plot(point[0],point[1],'ro')
+    plt.plot(0.24407213169558017, 0,'ro')
 
     for piece in pieces:
         lower,upper,a,b,c,d,=piece
         x=np.linspace(lower,upper,50)
-        y=np.maximum(a*x**3 + b*x**2 + c*x + d,0)
-        #y=a*x**3 + b*x**2 + c*x + d
+        #y=np.maximum(a*x**3 + b*x**2 + c*x + d,0)
+        y=a*x**3 + b*x**2 + c*x + d
 
         plt.plot(x,y)
     plt.show()
