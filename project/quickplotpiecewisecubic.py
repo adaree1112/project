@@ -5,7 +5,6 @@ def plotpieces(points,pieces):
 
     for point in points:
         plt.plot(point[0],point[1],'ro')
-    plt.plot(0.24407213169558017, 0,'ro')
 
     for piece in pieces:
         lower,upper,a,b,c,d,=piece

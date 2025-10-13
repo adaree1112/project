@@ -7,7 +7,7 @@ import numpy as np
 def piecewise_cubic_spline(points):
 
     points = sorted(points, key=lambda p: p[0])
-    print(points)
+    #print(points)
     n=len(points)-1
 
     matrix=np.zeros((4*n,4*n))
@@ -68,7 +68,7 @@ def piecewise_cubic_spline(points):
 
     # print(matrix)
     # print(matb)
-    print(np.matmul(inversematrix,matb))
+    #print(np.matmul(inversematrix,matb))
     coefficientmatrix=np.matmul(inversematrix,matb)
 
     pieces=[[points[i][0],points[i+1][0],coefficientmatrix[4*i][0],coefficientmatrix[4*i+1][0],coefficientmatrix[4*i+2][0],coefficientmatrix[4*i+3][0]]
@@ -76,21 +76,33 @@ def piecewise_cubic_spline(points):
 
     return pieces
 
-def find_roots(piece):
+def findrootsandfix(piece):
     x1,x2,a,b,c,d=piece
-    roots = [root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2]
-    print(roots)
-
+    roots = sorted([root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2])
+    p=[x1]+roots+[x2]
+    newpieces=[]
+    for x1,x2 in zip(p,p[1:]):
+        x=(x1+x2)/2
+        y=a*x**3+b*x**2+c*x+d
+        if y<0:
+            newpieces.append([x1,x2,0,0,0,0])
+        else:
+            newpieces.append([x1,x2,a,b,c,d])
+    return newpieces
 
 
 
 def deal_with_negatives(pieces):
+    newpieces=[]
     for piece in pieces:
         x1,x2,a,b,c,d=piece
         x=np.linspace(x1,x2,100)
         y=a*x**3+b*x**2+c*x+d
-        if any(y<0):
-            return x1,x2
+        if min(y)<0:
+            newpieces+=findrootsandfix(piece)
+        else:
+            newpieces.append(piece)
+    return newpieces
 
 def integratecubic(x1,x2,a,b,c,d):
     return a*(x2**4-x1**4)/4 + b*(x2**3-x1**3)/3 + c*(x2**2-x1**2)/2+d*(x2-x1)
@@ -101,7 +113,8 @@ def integratepiecewisecubic(pieces):
         area+=integratecubic(*piece)
     return area
 
-def normalisepiecewisecubic(pieces):
+def normalisepiecewisecubic(pieces,fpieces):
+
     points=[]
     for piece in pieces:
         x1=piece[0]
@@ -113,23 +126,28 @@ def normalisepiecewisecubic(pieces):
 
         y1=a*x1**3+b*x1**2+c*x1+d
         y2=a*x2**3+b*x2**2+c*x2+d
-        points+=[(x1,y1),(x2,y2)]
-    points=list(set(points))
+        points+=[(x1,y1)]
+    points+=[(x2,y2)]
 
-    area=integratepiecewisecubic(pieces)
+    print(points)
+
+    area=integratepiecewisecubic(fpieces)
     areascalefactor=1/area
 
     points=[(point[0],areascalefactor*point[1])for point in points]
-    return points,piecewise_cubic_spline(points)
+    pieces=piecewise_cubic_spline(points)
+    pieces=deal_with_negatives(pieces)
+    return points,pieces
 
 
 points=[(1,0), (2, 0.25), (3, 2), (4, 1)]
 
 # #print(piecewise_cubic_spline(points))
 pieces=piecewise_cubic_spline(points)
-plotpieces(points,pieces)
-print(find_roots(pieces[0]))
+fpieces=deal_with_negatives(pieces)
+plotpieces(points,fpieces)
+
 # pieces=[[2,3,-0.75,4.5,-6.25,3.5],[3,4,0.75,-9,34.25,-37.0]]
-# points,pieces=normalisepiecewisecubic(pieces)
-# plotpieces(points,pieces)
-# print(integratepiecewisecubic(pieces))
+points,pieces=normalisepiecewisecubic(pieces,fpieces)
+plotpieces(points,pieces)
+print(integratepiecewisecubic(pieces))
