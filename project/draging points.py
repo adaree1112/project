@@ -62,7 +62,7 @@ class PiecewiseGraph(tk.Frame):
         self.canvas.draw()
 
         self.points = [DraggablePoint(coord,self.refresh) for coord in coords]
-
+        self.add_point()
         self.refresh()
 
     def add_point(self):

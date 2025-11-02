@@ -1,3 +1,5 @@
+from http.cookiejar import uppercase_escaped_char
+
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -49,25 +51,7 @@ def piecewise_cubic_spline(points):
     ## f(n-1))''(x(n-1))=0
     matrix[-1][-4]=6*points[-1][0]
     matrix[-1][-3]=2
-    """
-    ## f1'(x1)=0
-    matrix[-2][0] = 3 * points[0][0]**2
-    matrix[-2][1] = 2 * points[0][0]
-    matrix[-2][2] = 1
 
-    ## f(n-1))'(x(n-1))=0
-    matrix[-1][-4] = 3 * points[-1][0]**2
-    matrix[-1][-3] = 2 * points[-1][0]
-    matrix[-1][-2] = 1
-"""
-
-
-
-    # print(matrix)
-    # print(matb)
-    #print(np.matmul(inversematrix,matb))
-    # inversematrix=np.linalg.inv(matrix)
-    # coefficientmatrix=np.matmul(inversematrix,matb)
     coefficientmatrix=np.linalg.solve(matrix,matb)
     pieces=[np.array([points[i][0],points[i+1][0],coefficientmatrix[4*i][0],coefficientmatrix[4*i+1][0],coefficientmatrix[4*i+2][0],coefficientmatrix[4*i+3][0]])
             for i in range(n)]
@@ -109,15 +93,33 @@ def dealwithnegatives(pieces):
             newpieces.append(piece)
     return newpieces
 
-def integratepiecewisecubic(pieces):
+def integratefullpiecewisecubic(pieces):
     area=0
     for piece in pieces:
         x1,x2,a,b,c,d=piece
         area+=a*(x2**4-x1**4)/4 + b*(x2**3-x1**3)/3 + c*(x2**2-x1**2)/2+d*(x2-x1)
     return area
 
+def integratepiecewise(pieces,A=None,B=None):
+    def integrate(A,B,piece):
+        a,b,c,d=piece[2:]
+        return a*(B**4-A**4)/4 + b*(B**3-A**3)/3 + c*(B**2-A**2)/2+d*(B-A)
+    total=0
+    for p,piece in enumerate(pieces):
+        x1,x2,a,b,c,d=piece
+        if A and B:
+            lowerbound=max(A,x1)
+            upperbound=min(B,x2)
+        else:
+            lowerbound=x1
+            upperbound=x2
+        if lowerbound < upperbound:
+            total+=integrate(lowerbound,upperbound,piece)
+    return total
+
+
 def normalisepiecewisecubic(points,pieces):
-    area=integratepiecewisecubic(pieces)
+    area=integratepiecewise(pieces)
     k=1/area
     points=[(point[0],k*point[1]) for point in points]
     pieces=[np.concatenate((piece[:2],k * piece[2:])) for piece in pieces]
@@ -138,6 +140,9 @@ def plotpieces(points,pieces):
 
 
 if __name__=='__main__':
+    print(integratepiecewise(2.5,3.5,[[2,3,.75,-4.5,7.25,.5],[3,4,-.75,9,-33.25,41]]))
+
+    quit()
     points=[(1,0), (2, 0.25), (3, 2), (4, 1)]
 
     #print(piecewise_cubic_spline(points))
@@ -147,4 +152,4 @@ if __name__=='__main__':
 
     points,pieces=normalisepiecewisecubic(points,pieces)
     plotpieces(points,pieces)
-    print(integratepiecewisecubic(pieces))
+    print(integratefullpiecewisecubic(pieces))
