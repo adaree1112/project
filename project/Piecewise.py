@@ -12,6 +12,7 @@ def integrate_nbic(A, B,a,b,c,d,n): #defined for n>2
 class Piecewise:
     def __init__(self, points):
         self._points = points
+        self.is_normalised = False
         self.pieces = []
         self.calculate_pieces()
 
@@ -22,6 +23,7 @@ class Piecewise:
         return len(self._points)
 
     def add_point(self):
+        self.is_normalised = False
         if not self._points:
             self._points.append([(0, 0), (1, 1)])
         elif len(self._points) < 2:
@@ -36,6 +38,7 @@ class Piecewise:
             self._points.append((new_x, new_y))
 
     def remove_point(self):
+        self.is_normalised = False
         if len(self._points) > 2:
             self._points.pop(random.randint(0, len(self._points) - 1))
 
@@ -47,6 +50,7 @@ class Piecewise:
         for i, (x, y) in enumerate(self._points):
             if np.isclose(x,old_x) and np.isclose(y,old_y):
                 self._points[i] = (new_x, new_y)
+                self.is_normalised = False
                 break
 
     def normalise(self):
@@ -54,6 +58,7 @@ class Piecewise:
         k = 1 / area
         self._points = [(point[0], k * point[1]) for point in self._points]
         self.pieces = [np.concatenate((piece[:2], k * piece[2:])) for piece in self.pieces]
+        self.is_normalised = True
 
     def integrate_piecewise(self,A=None, B=None):
         total = 0
@@ -133,7 +138,9 @@ class AbstractStatisticalModel:
         raise NotImplementedError
 
 class Normal(AbstractStatisticalModel):
-    def __init__(self,parameters:dict):
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {"mu": 0, "sigma": 1}
         mu=parameters["mu"]
         sigma=parameters["sigma"]
         super().__init__(parameters,False,mu-5*sigma,mu+5*sigma)
@@ -152,7 +159,9 @@ class Normal(AbstractStatisticalModel):
         return sigma**2
 
 class Binomial(AbstractStatisticalModel):
-    def __init__(self,parameters:dict):
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {"n": 20, "p": 0.6}
         n=parameters["n"]
         super().__init__(parameters,True,0,n)
 
@@ -172,24 +181,28 @@ class Binomial(AbstractStatisticalModel):
         return n*p *(1-p)
 
 class Poisson(AbstractStatisticalModel):
-    def __init__(self,parameters:dict):
-        lam=parameters["lamda"]
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {"lamda": 5}
+        lam=parameters["lambda"]
         super().__init__(parameters,True,0,int(lam+5*math.sqrt(lam)))
 
     def pdf(self,x):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return np.exp(-lam)*lam**x/math.factorial(x)
 
     def expectation(self):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return lam
 
     def variance(self):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return lam
 
 class Geometric(AbstractStatisticalModel):
-    def __init__(self,parameters:dict):
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {"p": 0.2}
         p=parameters["p"]
         super().__init__(parameters,True,1,int(1/p + 5*(1-p)**.5/p))
 
@@ -206,24 +219,26 @@ class Geometric(AbstractStatisticalModel):
         return (1-p)*p**-2
 
 class Exponential(AbstractStatisticalModel):
-    def __init__(self,parameters:dict):
-        lam=parameters["lamda"]
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = {"lambda": 5}
+        lam=parameters["lambda"]
         super().__init__(parameters,False,0,int(1/lam+5/lam))
 
     def pdf(self,x):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return lam*np.exp(-lam*x)
 
     def cdf(self,x):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return 1 - np.exp(-lam*x)
 
     def expectation(self):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return 1/lam
 
     def variance(self):
-        lam=self.parameters["lamda"]
+        lam=self.parameters["lambda"]
         return lam**-2
 
 if __name__ == '__main__':
