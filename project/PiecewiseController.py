@@ -1,11 +1,7 @@
 import tkinter as tk
-import tkinter.ttk as ttk
-from re import match
-from tkinter import Spinbox
 
-from project.Piecewise import Piecewise, AbstractStatisticalModel, Binomial, Exponential
+from project.Piecewise import Piecewise
 from project.PiecewiseGraph import PiecewiseGraph
-from project.spinertest import LabelSpinBox
 
 class PiecewiseController:
     def __init__(self,root):
@@ -46,11 +42,6 @@ class PiecewiseController:
         self.model.update_point(old_x,old_y,new_x,new_y)
         self.update_view()
 
-class StatsticalButtonFrame(tk.Frame):
-    def __init__(self,root,refresh,parameters=None):
-        super().__init__(root)
-        for i,(k,v) in enumerate(parameters.items()):
-            LabelSpinBox(self,k,0,1,0.01,0.5,refresh).pack(side=tk.TOP)
 
 
 

@@ -139,107 +139,122 @@ class AbstractStatisticalModel:
 
 class Normal(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {"mu": 0, "sigma": 1}
-        mu=parameters["mu"]
-        sigma=parameters["sigma"]
+        mu=parameters["mu"].value
+        sigma=parameters["sigma"].value
         super().__init__(parameters,False,mu-5*sigma,mu+5*sigma)
 
     def pdf(self,x):
-        mu=self.parameters["mu"]
-        sigma=self.parameters["sigma"]
+        mu=self.parameters["mu"].value
+        sigma=self.parameters["sigma"].value
         return (1 / (sigma * np.sqrt(2 * math.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     def expectation(self):
-        mu=self.parameters["mu"]
+        mu=self.parameters["mu"].value
         return mu
 
     def variance(self):
-        sigma=self.parameters["sigma"]
+        sigma=self.parameters["sigma"].value
         return sigma**2
 
 class Binomial(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {"n": 20, "p": 0.6}
-        n=parameters["n"]
+        n=parameters["n"].value
         super().__init__(parameters,True,0,n)
 
     def pdf(self,x):
-        n=self.parameters["n"]
-        p=self.parameters["p"]
+        n=self.parameters["n"].value
+        p=self.parameters["p"].value
         return comb(n, x) * (p ** x) * ((1 - p) ** (n - x))
 
     def expectation(self):
-        n=self.parameters["n"]
-        p=self.parameters["p"]
+        n=self.parameters["n"].value
+        p=self.parameters["p"].value
         return n*p
 
     def variance(self):
-        n=self.parameters["n"]
-        p=self.parameters["p"]
+        n=self.parameters["n"].value
+        p=self.parameters["p"].value
         return n*p *(1-p)
 
 class Poisson(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {"lamda": 5}
-        lam=parameters["lambda"]
+        lam=parameters["lambda"].value
         super().__init__(parameters,True,0,int(lam+5*math.sqrt(lam)))
 
     def pdf(self,x):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return np.exp(-lam)*lam**x/math.factorial(x)
 
     def expectation(self):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return lam
 
     def variance(self):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return lam
 
 class Geometric(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {"p": 0.2}
-        p=parameters["p"]
+        p=parameters["p"].value
         super().__init__(parameters,True,1,int(1/p + 5*(1-p)**.5/p))
 
     def pdf(self,x):
-        p=self.parameters["p"]
+        p=self.parameters["p"].value
         return (1-p)**(x-1)*p
 
     def expectation(self):
-        p=self.parameters["p"]
+        p=self.parameters["p"].value
         return 1/p
 
     def variance(self):
-        p=self.parameters["p"]
+        p=self.parameters["p"].value
         return (1-p)*p**-2
 
 class Exponential(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        if parameters is None:
-            parameters = {"lambda": 5}
-        lam=parameters["lambda"]
+        lam=parameters["lambda"].value
         super().__init__(parameters,False,0,int(1/lam+5/lam))
 
     def pdf(self,x):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return lam*np.exp(-lam*x)
 
     def cdf(self,x):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return 1 - np.exp(-lam*x)
 
     def expectation(self):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return 1/lam
 
     def variance(self):
-        lam=self.parameters["lambda"]
+        lam=self.parameters["lambda"].value
         return lam**-2
+
+
+class Parameter:
+    def __init__(self, label, minimum, maximum, step, default):
+        self.label = label
+        self.minimum = minimum
+        self.maximum = maximum
+        self.step = step
+        self.value = default
+
+    @property
+    def value(self):
+        return self.value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    def get_spinbox_args(self):
+        return {"from_":self.minimum, "to":self.maximum,"step":self.step},self.label
+
+
+
+
+
 
 
 """@startuml
@@ -308,7 +323,15 @@ class Exponential{
 }
 AbstractStatisticalModel<|--Exponential
 
-class Parameters{}
+class Parameters{
+    - label
+    - minimum
+    - maximum
+    - step
+    + value <<property>>
+    + value() <<setter>>
+    + get_spinbox_args()
+}
 
 Binomial o--	 Parameters
 Normal o--	 Parameters
@@ -335,7 +358,8 @@ if __name__ == '__main__':
         print(x,y)
         plt.bar(x,y)
     plt.show()
-    """
+    
 
     model=Normal({"sigma":10,"mu":0.25})#
     print(model.cdf(3))
+    """
