@@ -226,6 +226,90 @@ class Exponential(AbstractStatisticalModel):
         lam=self.parameters["lamda"]
         return lam**-2
 
+
+"""@startuml
+class "Piecewise"{
+-points: List
++pieces: List
++get_points()
++get_num_points()
++add_point()
++remove_point()
++calculate_pieces()
++update_point()
++normalise()
++integrate_piecewise()
++expectation()
++variance()
+}
+
+abstract "AbstractStatisticalModel"{
++parameters: List
++is_discrete: Bool
++mini: Float
++maxi: Float
++pdf() - not impletented
++get_plot_data()
++get_parameters()
++cdf()
++update_parameters()
++expectation() - not implemented
++variance() - not implemented
+}
+
+class Normal{
++pdf()
++expectation()
++variance()
+}
+AbstractStatisticalModel<|--Normal
+
+class Binomial{
++pdf()
++expectation()
++variance()
+}
+AbstractStatisticalModel<|--Binomial
+
+class Poisson{
++pdf()
++expectation()
++variance()
+}
+AbstractStatisticalModel<|--Poisson
+
+class Geometric{
++pdf()
++expectation()
++variance()
+}
+AbstractStatisticalModel<|--Geometric
+
+class Exponential{
++pdf()
++expectation()
++variance()
++cdf()
+}
+AbstractStatisticalModel<|--Exponential
+
+class Parameters{}
+
+Binomial o--	 Parameters
+Normal o--	 Parameters
+Geometric o--	 Parameters
+Poisson o--	 Parameters
+Exponential o--	 Parameters
+@enduml"""
+
+
+
+
+#TODO: CLASS PARAMETER
+#TODO: TESTS
+#TODO: DOUBLE CLICK TO ADD
+
+
 if __name__ == '__main__':
     #import matplotlib.pyplot as plt
     """
