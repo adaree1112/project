@@ -6,8 +6,10 @@ from scipy.special import comb
 from project.piecewisecubicsplines import piecewise_cubic_spline
 
 
-def integrate_nbic(A, B,a,b,c,d,n): #defined for n>2
-    return a * (B ** (n+1) - A ** (n+1)) / (n+1) + b * (B ** n - A ** n) / n + c * (B ** (n-1) - A ** (n-1)) / (n-1) + d * (B**(n-2) - A**(n-2))/(n-2)
+def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
+    return a * (B ** (n + 1) - A ** (n + 1)) / (n + 1) + b * (B ** n - A ** n) / n + c * (
+                B ** (n - 1) - A ** (n - 1)) / (n - 1) + d * (B ** (n - 2) - A ** (n - 2)) / (n - 2)
+
 
 class Piecewise:
     def __init__(self, points):
@@ -48,7 +50,7 @@ class Piecewise:
 
     def update_point(self, old_x, old_y, new_x, new_y):
         for i, (x, y) in enumerate(self._points):
-            if np.isclose(x,old_x) and np.isclose(y,old_y):
+            if np.isclose(x, old_x) and np.isclose(y, old_y):
                 self._points[i] = (new_x, new_y)
                 self.is_normalised = False
                 break
@@ -60,7 +62,7 @@ class Piecewise:
         self.pieces = [np.concatenate((piece[:2], k * piece[2:])) for piece in self.pieces]
         self.is_normalised = True
 
-    def integrate_piecewise(self,A=None, B=None):
+    def integrate_piecewise(self, A=None, B=None):
         total = 0
         for p, piece in enumerate(self.pieces):
             x1, x2, a, b, c, d = piece
@@ -71,20 +73,18 @@ class Piecewise:
                 lower_bound = x1
                 upper_bound = x2
             if lower_bound < upper_bound:
-                total += integrate_nbic(lower_bound, upper_bound,a,b,c,d,3)
+                total += integrate_nbic(lower_bound, upper_bound, a, b, c, d, 3)
         return total
 
-    def expectation(self,sq=False):
-        total=0
+    def expectation(self, sq=False):
+        total = 0
         for piece in self.pieces:
             x1, x2, a, b, c, d = piece
-            total+=integrate_nbic(x1,x2,a,b,c,d,4+sq)
+            total += integrate_nbic(x1, x2, a, b, c, d, 4 + sq)
         return total
 
     def variance(self):
-        return self.expectation(sq=True) - self.expectation()**2
-
-
+        return self.expectation(sq=True) - self.expectation() ** 2
 
 
 class AbstractStatisticalModel:
@@ -94,32 +94,32 @@ class AbstractStatisticalModel:
         self.mini = mini
         self.maxi = maxi
 
-    def pdf(self,x):
+    def pdf(self, x):
         raise NotImplementedError
 
     def get_plot_data(self):
         if self.is_discrete:
             x_vals = np.array(range(self.mini, self.maxi))
             y_vals = self.pdf(x_vals)
-            graphtype='bar'
+            graphtype = 'bar'
         else:
             x_vals = np.linspace(self.mini, self.maxi, 100)
             y_vals = self.pdf(x_vals)
-            graphtype='line'
+            graphtype = 'line'
         return x_vals, y_vals, graphtype
 
     def get_parameters(self):
         return self.parameters
 
-    def cdf(self,x):
+    def cdf(self, x):
         total = 0.0
 
         if self.is_discrete:
-            total=0.0
-            for i in range (self.mini, x + 1):
-                total+=self.pdf(i)
+            total = 0.0
+            for i in range(self.mini, x + 1):
+                total += self.pdf(i)
         else:
-            n=1000
+            n = 1000
             h = float(x - self.mini) / n
             total += self.pdf(self.mini) / 2.0
             for i in range(1, n):
@@ -137,99 +137,104 @@ class AbstractStatisticalModel:
     def variance(self):
         raise NotImplementedError
 
+
 class Normal(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        mu=parameters["mu"].value
-        sigma=parameters["sigma"].value
-        super().__init__(parameters,False,mu-5*sigma,mu+5*sigma)
+        mu = parameters["mu"].value
+        sigma = parameters["sigma"].value
+        super().__init__(parameters, False, mu - 5 * sigma, mu + 5 * sigma)
 
-    def pdf(self,x):
-        mu=self.parameters["mu"].value
-        sigma=self.parameters["sigma"].value
+    def pdf(self, x):
+        mu = self.parameters["mu"].value
+        sigma = self.parameters["sigma"].value
         return (1 / (sigma * np.sqrt(2 * math.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     def expectation(self):
-        mu=self.parameters["mu"].value
+        mu = self.parameters["mu"].value
         return mu
 
     def variance(self):
-        sigma=self.parameters["sigma"].value
-        return sigma**2
+        sigma = self.parameters["sigma"].value
+        return sigma ** 2
+
 
 class Binomial(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        n=parameters["n"].value
-        super().__init__(parameters,True,0,n)
+        n = parameters["n"].value
+        super().__init__(parameters, True, 0, n)
 
-    def pdf(self,x):
-        n=self.parameters["n"].value
-        p=self.parameters["p"].value
+    def pdf(self, x):
+        n = self.parameters["n"].value
+        p = self.parameters["p"].value
         return comb(n, x) * (p ** x) * ((1 - p) ** (n - x))
 
     def expectation(self):
-        n=self.parameters["n"].value
-        p=self.parameters["p"].value
-        return n*p
+        n = self.parameters["n"].value
+        p = self.parameters["p"].value
+        return n * p
 
     def variance(self):
-        n=self.parameters["n"].value
-        p=self.parameters["p"].value
-        return n*p *(1-p)
+        n = self.parameters["n"].value
+        p = self.parameters["p"].value
+        return n * p * (1 - p)
+
 
 class Poisson(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        lam=parameters["lambda"].value
-        super().__init__(parameters,True,0,int(lam+5*math.sqrt(lam)))
+        lam = parameters["lambda"].value
+        super().__init__(parameters, True, 0, int(lam + 5 * math.sqrt(lam)))
 
-    def pdf(self,x):
-        lam=self.parameters["lambda"].value
-        return np.exp(-lam)*lam**x/math.factorial(x)
+    def pdf(self, x):
+        lam = self.parameters["lambda"].value
+        return np.exp(-lam) * lam ** x / math.factorial(x)
 
     def expectation(self):
-        lam=self.parameters["lambda"].value
+        lam = self.parameters["lambda"].value
         return lam
 
     def variance(self):
-        lam=self.parameters["lambda"].value
+        lam = self.parameters["lambda"].value
         return lam
+
 
 class Geometric(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        p=parameters["p"].value
-        super().__init__(parameters,True,1,int(1/p + 5*(1-p)**.5/p))
+        p = parameters["p"].value
+        super().__init__(parameters, True, 1, int(1 / p + 5 * (1 - p) ** .5 / p))
 
-    def pdf(self,x):
-        p=self.parameters["p"].value
-        return (1-p)**(x-1)*p
+    def pdf(self, x):
+        p = self.parameters["p"].value
+        return (1 - p) ** (x - 1) * p
 
     def expectation(self):
-        p=self.parameters["p"].value
-        return 1/p
+        p = self.parameters["p"].value
+        return 1 / p
 
     def variance(self):
-        p=self.parameters["p"].value
-        return (1-p)*p**-2
+        p = self.parameters["p"].value
+        return (1 - p) * p ** -2
+
 
 class Exponential(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        lam=parameters["lambda"].value
-        super().__init__(parameters,False,0,int(1/lam+5/lam))
+        lam = parameters["lambda"].value
+        super().__init__(parameters, False, 0, int(1 / lam + 5 / lam))
 
-    def pdf(self,x):
-        lam=self.parameters["lambda"].value
-        return lam*np.exp(-lam*x)
+    def pdf(self, x):
+        lam = self.parameters["lambda"].value
+        return lam * np.exp(-lam * x)
 
-    def cdf(self,x):
-        lam=self.parameters["lambda"].value
-        return 1 - np.exp(-lam*x)
+    def cdf(self, x):
+        lam = self.parameters["lambda"].value
+        return 1 - np.exp(-lam * x)
 
     def expectation(self):
-        lam=self.parameters["lambda"].value
-        return 1/lam
+        lam = self.parameters["lambda"].value
+        return 1 / lam
 
     def variance(self):
-        lam=self.parameters["lambda"].value
-        return lam**-2
+        lam = self.parameters["lambda"].value
+        return lam ** -2
 
 
 class Parameter:
@@ -238,23 +243,35 @@ class Parameter:
         self.minimum = minimum
         self.maximum = maximum
         self.step = step
-        self.value = default
+        self.default = default
+        self._value = default
 
     @property
     def value(self):
-        return self.value
+        return self._value
 
     @value.setter
     def value(self, value):
-        self._value = value
+        try:
+            v = float(value)
+            if self.minimum <= v <= self.maximum:
+                self._value = v
+        except ValueError:
+            pass
+
+    def get_label(self):
+        return self.label+" = "
+
+    def validate(self, value,):
+        print("hello")
+        try:
+            v = float(value)
+            return self.minimum <= v <= self.maximum
+        except ValueError:
+            return False
 
     def get_spinbox_args(self):
-        return {"from_":self.minimum, "to":self.maximum,"step":self.step},self.label
-
-
-
-
-
+        return {"from_": self.minimum, "to": self.maximum, "increment": self.step,"width":5}
 
 
 """@startuml
@@ -340,16 +357,13 @@ Poisson o--	 Parameters
 Exponential o--	 Parameters
 @enduml"""
 
-
-
-
-#TODO: CLASS PARAMETER
-#TODO: TESTS
-#TODO: DOUBLE CLICK TO ADD
+# TODO: CLASS PARAMETER
+# TODO: TESTS
+# TODO: DOUBLE CLICK TO ADD
 
 
 if __name__ == '__main__':
-    #import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
     """
     x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
     if t == 'line':
