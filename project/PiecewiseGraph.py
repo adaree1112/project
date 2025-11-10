@@ -1,4 +1,6 @@
 import tkinter as tk
+
+import mplcursors
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
@@ -38,3 +40,48 @@ class PiecewiseGraph(tk.Frame):
         self.ax.set_ylim(bottom=0)
         self.ax.autoscale_view()
         self.canvas.draw()
+
+
+class DistributionGraph(tk.Frame):
+    def __init__(self, master, controller):
+        super().__init__(master)
+        self.controller = controller
+        self.fig = Figure(figsize=(5, 5), dpi=100)
+        self.ax = self.fig.add_subplot()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+    def update_plot(self, x_vals, y_vals,graph_type):
+        self.ax.clear()
+        if graph_type == 'bar':
+            bars=self.ax.bar(x_vals, y_vals)
+            cursor=mplcursors.cursor(bars, hover=True)
+            @cursor.connect("add")
+            def on_add(sel):
+                sel.annotation.set_text(f"x = {sel.target[0]:.0f}\nP(X=x)={sel.target[1]:.4f}")
+                sel.annotation.get_bbox_patch().set(alpha=0.8)
+
+
+        if graph_type == 'line':
+            plot = self.ax.plot(x_vals, y_vals)
+            self.ax.set_ylim(bottom=0)
+            cursor=mplcursors.cursor(plot, hover=True)
+
+        self.canvas.draw()
+
+if __name__ == '__main__':
+    from Piecewise import Normal, Parameter, Binomial
+    mu=Parameter("mu",-999,999,1,0)
+    sigma=Parameter("sigma",-999,999,1,1)
+    n=Parameter("n",1,999,1,10)
+    p=Parameter("p",0,1,0.05,0.5)
+    norm=Normal({"mu":mu,"sigma":sigma})
+    binom=Binomial({"n":n,"p":p})
+    root = tk.Tk()
+
+    graph = DistributionGraph(root,"hi")
+    print(binom.get_plot_data())
+    graph.update_plot(*norm.get_plot_data())
+    graph.pack(fill=tk.BOTH, expand=True)
+    root.mainloop()
