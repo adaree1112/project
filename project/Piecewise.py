@@ -103,16 +103,20 @@ class AbstractStatisticalModel:
             x_vals = np.array(range(self.mini, self.maxi))
             y_vals = self.pdf(x_vals)
             graphtype = 'bar'
+            cdf_vals=None
         else:
             x_vals = np.linspace(self.mini, self.maxi, 100)
             y_vals = self.pdf(x_vals)
             graphtype = 'line'
-        return x_vals, y_vals, graphtype
+            cdf_vals=self.cdf(x_vals)
+        return x_vals, y_vals, graphtype, cdf_vals
 
     def get_parameters(self):
         return self.parameters
 
     def cdf(self, x):
+        if type(x) == np.ndarray:
+            return [self.cdf(c) for c in x]
         total = 0.0
 
         if self.is_discrete:

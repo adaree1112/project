@@ -52,21 +52,29 @@ class DistributionGraph(tk.Frame):
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
-    def update_plot(self, x_vals, y_vals,graph_type):
+    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals,showcursors=False):
         self.ax.clear()
         if graph_type == 'bar':
             bars=self.ax.bar(x_vals, y_vals)
             cursor=mplcursors.cursor(bars, hover=True)
-            @cursor.connect("add")
-            def on_add(sel):
-                sel.annotation.set_text(f"x = {sel.target[0]:.0f}\nP(X=x)={sel.target[1]:.4f}")
-                sel.annotation.get_bbox_patch().set(alpha=0.8)
+            if showcursors:
+                @cursor.connect("add")
+                def on_add(sel):
+                    sel.annotation.set_text(f"x = {sel.target[0]:.0f}\nP(X=x)={sel.target[1]:.4f}")
+                    sel.annotation.get_bbox_patch().set(alpha=0.8)
 
 
         if graph_type == 'line':
             plot = self.ax.plot(x_vals, y_vals)
             self.ax.set_ylim(bottom=0)
             cursor=mplcursors.cursor(plot, hover=True)
+            if showcursors:
+                @cursor.connect("add")
+                def on_add(sel):
+                    x, y = sel.target
+                    index=np.argmin(np.abs(x_vals - x))
+                    sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
+                    sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.canvas.draw()
 
@@ -82,6 +90,6 @@ if __name__ == '__main__':
 
     graph = DistributionGraph(root,"hi")
     print(binom.get_plot_data())
-    graph.update_plot(*norm.get_plot_data())
+    graph.update_plot(*norm.get_plot_data(),showcursors=True)
     graph.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
