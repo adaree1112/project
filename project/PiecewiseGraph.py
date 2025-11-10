@@ -67,6 +67,7 @@ class DistributionGraph(tk.Frame):
         if graph_type == 'line':
             plot = self.ax.plot(x_vals, y_vals)
             self.ax.set_ylim(bottom=0)
+            self.ax.set_xlim(right=max(x_vals), left=min(x_vals))
             cursor=mplcursors.cursor(plot, hover=True)
             if showcursors:
                 @cursor.connect("add")

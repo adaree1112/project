@@ -98,7 +98,6 @@ class AbstractStatisticalModel:
         raise NotImplementedError
 
     def get_plot_data(self):
-        print("is_discrete=", self.is_discrete, "mini=", self.mini, "maxi=", self.maxi)
         if self.is_discrete:
             x_vals = np.array(range(self.mini, self.maxi))
             y_vals = self.pdf(x_vals)
