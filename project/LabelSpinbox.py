@@ -30,19 +30,37 @@ class LabelSpinbox(tk.Frame):
 
     def _on_value_change(self, *args):
         self.parameter.value = self.value.get()
-        if self.on_change:
-            self.on_change(self.parameter.value)
+        self.on_change()
+
+class PairRadioButton(tk.Frame):
+    def __init__(self, master, options,on_change):
+        super().__init__(master)
+        self.on_change = on_change
+        self.options = options
+        self.v = tk.StringVar(master, "0")
+        values = {option:i for i, option in enumerate(options)}
+
+        for (text, value) in values.items():
+            ttk.Radiobutton(master, text=text, variable=self.v,value=value,command=self.on_option_change).pack(side='left', ipady=5)
+
+    def on_option_change(self):
+        self.on_change(self.options[int(self.v.get())])
+
+    def get(self):
+        return self.options[int(self.v.get())]
+
 
 if __name__ == "__main__":
     #################################SOME ERRORS
     root = tk.Tk()
     root.title("TEST")
 
-    def callback(*args):
-        print("hello2")
+    def callback(a=None,*args):
+        print("hello2",a)
         pass
 
-    # 2. Create the Controller, which creates and manages the View
-    controller = LabelSpinbox(root,Parameter("p",0,1,0.01,0.5),callback)
+
+    controller = PairRadioButton(root,["Linear","Cubic Splines"],callback)
+    #controller = LabelSpinbox(root,Parameter("p",0,1,0.01,0.5),callback)
     controller.pack()
     root.mainloop()

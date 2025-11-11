@@ -5,6 +5,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from project.DraggablePoint import DraggablePoint
+from project.LabelSpinbox import LabelSpinbox
+
 
 class PiecewiseGraph(tk.Frame):
     def __init__(self, master, controller):
@@ -43,21 +45,22 @@ class PiecewiseGraph(tk.Frame):
 
 
 class DistributionGraph(tk.Frame):
-    def __init__(self, master, controller):
+    def __init__(self, master, controller, showcursors=False):
         super().__init__(master)
         self.controller = controller
+        self.showcursors = showcursors
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax = self.fig.add_subplot()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
-    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals,showcursors=False):
+    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals):
         self.ax.clear()
         if graph_type == 'bar':
             bars=self.ax.bar(x_vals, y_vals)
-            cursor=mplcursors.cursor(bars, hover=True)
-            if showcursors:
+            if self.showcursors:
+                cursor = mplcursors.cursor(bars, hover=True)
                 @cursor.connect("add")
                 def on_add(sel):
                     sel.annotation.set_text(f"x = {sel.target[0]:.0f}\nP(X=x)={sel.target[1]:.4f}")
@@ -68,8 +71,9 @@ class DistributionGraph(tk.Frame):
             plot = self.ax.plot(x_vals, y_vals)
             self.ax.set_ylim(bottom=0)
             self.ax.set_xlim(right=max(x_vals), left=min(x_vals))
-            cursor=mplcursors.cursor(plot, hover=True)
-            if showcursors:
+            if self.showcursors:
+                cursor = mplcursors.cursor(plot, hover=True)
+
                 @cursor.connect("add")
                 def on_add(sel):
                     x, y = sel.target
@@ -79,7 +83,35 @@ class DistributionGraph(tk.Frame):
 
         self.canvas.draw()
 
+
+class DistributionsSettingsFrame(tk.Frame):
+    def __init__(self, master, controller,parameters,on_change):
+        super().__init__(master)
+        self.controller = controller
+        self.on_change = on_change
+
+        for param in parameters:
+            LabelSpinbox(self,param,self.on_change).pack()
+
+class PiecewiseSettingsFrame(tk.Frame):
+    def __init__(self, master, controller,on_change):
+        super().__init__(master)
+        pass
+        #### OPTIONS AND ADD/REMOVE/NORMALISE BUTTON
+
+
+
 if __name__ == '__main__':
+    from Piecewise import Parameter
+    def cb():
+        print("hello")
+    root = tk.Tk()
+    settings=SettingsFrame(root,None,[Parameter("mu",-999,999,1,0),Parameter("sigma",-999,999,1,1)],cb)
+    settings.pack()
+    root.mainloop()
+
+
+    """
     from Piecewise import Normal, Parameter, Binomial
     mu=Parameter("mu",-999,999,1,0)
     sigma=Parameter("sigma",-999,999,1,1)
@@ -89,8 +121,8 @@ if __name__ == '__main__':
     binom=Binomial({"n":n,"p":p})
     root = tk.Tk()
 
-    graph = DistributionGraph(root,"hi")
-    print(binom.get_plot_data())
-    graph.update_plot(*norm.get_plot_data(),showcursors=True)
+    graph = DistributionGraph(root,"hi",showcursors=False)
+    graph.update_plot(*norm.get_plot_data())
     graph.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
+    """
