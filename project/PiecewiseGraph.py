@@ -1,11 +1,12 @@
 import tkinter as tk
+from importlib.metadata import Distribution
 
 import mplcursors
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from project.DraggablePoint import DraggablePoint
-from project.LabelSpinbox import LabelSpinbox
+from project.LabelSpinbox import LabelSpinbox, PairRadioButton
 
 
 class PiecewiseGraph(tk.Frame):
@@ -84,7 +85,7 @@ class DistributionGraph(tk.Frame):
         self.canvas.draw()
 
 
-class DistributionsSettingsFrame(tk.Frame):
+class DistributionSettingsFrame(tk.Frame):
     def __init__(self, master, controller,parameters,on_change):
         super().__init__(master)
         self.controller = controller
@@ -94,20 +95,29 @@ class DistributionsSettingsFrame(tk.Frame):
             LabelSpinbox(self,param,self.on_change).pack()
 
 class PiecewiseSettingsFrame(tk.Frame):
-    def __init__(self, master, controller,on_change):
+    def __init__(self, master, controller,on_change,add,remove):
         super().__init__(master)
-        pass
-        #### OPTIONS AND ADD/REMOVE/NORMALISE BUTTON
+        self.rbs=PairRadioButton(self,["Linear","Cubic Splines"],on_change)
+        self.add_button = tk.Button(text="Add Point", command=add)
+        self.remove_button = tk.Button(text="Remove Point", command=remove)
+        self.rbs.grid(column=0, row=0)
+        self.add_button.grid(column=0, row=1)
+        self.remove_button.grid(column=0, row=2)
 
 
 
 if __name__ == '__main__':
     from Piecewise import Parameter
-    def cb():
-        print("hello")
+    def cb(option=None):
+        print("hello",option)
+    def add():
+        print("add")
+    def remove():
+        print("remove")
     root = tk.Tk()
-    settings=SettingsFrame(root,None,[Parameter("mu",-999,999,1,0),Parameter("sigma",-999,999,1,1)],cb)
-    settings.pack()
+    #settings=DistributionSettingsFrame(root,None,[Parameter("mu",-999,999,1,0),Parameter("sigma",-999,999,1,1)],cb)
+    settings=PiecewiseSettingsFrame(root,None,cb,add,remove)
+    settings.grid(column=0, row=0)
     root.mainloop()
 
 

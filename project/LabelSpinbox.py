@@ -40,8 +40,8 @@ class PairRadioButton(tk.Frame):
         self.v = tk.StringVar(master, "0")
         values = {option:i for i, option in enumerate(options)}
 
-        for (text, value) in values.items():
-            ttk.Radiobutton(master, text=text, variable=self.v,value=value,command=self.on_option_change).pack(side='left', ipady=5)
+        for i,(text, value) in enumerate(values.items()):
+            ttk.Radiobutton(master, text=text, variable=self.v,value=value,command=self.on_option_change).grid(column=i,row=0)
 
     def on_option_change(self):
         self.on_change(self.options[int(self.v.get())])

@@ -131,9 +131,62 @@ class AbstractStatisticalModel:
             total += self.pdf(x) / 2.0
             total *= h
         return total
+    ##FIND p from x
+    def pxequals(self,x):
+        if self.is_discrete:
+            if self.mini <= x <= self.maxi:
+                return self.pdf(x)
+        return 0
 
-    def update_parameters(self, parameters):
-        self.parameters = parameters
+    def pxlessthan(self,x):
+        if self.mini <= x :
+            return self.cdf(min(x,self.maxi))
+        return 0
+
+    def pxlessthanequalto(self,x):
+        if self.is_discrete:
+            return self.pxlessthan(x+1)
+        else:
+            return self.pxlessthan(x)
+
+    def pxgreaterthan(self,x):
+        return 1-self.pxlessthanequalto(x)
+
+    def pxgreaterthanequalto(self,x):
+        return 1-self.pxlessthan(x)
+
+    def pxinclusivein(self, a, b):
+        if self.is_discrete:
+            return self.pxlessthanequalto(b) - self.pxlessthanequalto(a - 1)
+        else:
+            return self.pxlessthanequalto(b) - self.pxlessthanequalto(a)
+
+    def pxexclusivein(self,a,b):
+        return self.pxlessthan(b)-self.pxlessthan(a)
+
+    #FIND x from P
+
+    def xplessthan(self,p):
+        if self.is_discrete:
+            prevx = None
+            for x in range(self.mini, self.maxi+1):
+                if self.pxlessthan(x) <= p:
+                    prevx = x
+                else:
+                    break
+            return prevx
+        else:
+            ######## ERRORS
+            def binarysearchforx(targetp,minimum,maximum,func):
+                middle=(minimum + maximum)/2
+                if np.isclose(func(middle), targetp):
+                    return middle
+                if func(middle)<targetp:
+                    return binarysearchforx(targetp,middle,maximum,func)
+                elif func(middle)>targetp:
+                    return binarysearchforx(targetp,minimum,targetp,func)
+                return None
+            return binarysearchforx(p,self.mini,self.maxi,self.cdf)
 
     def expectation(self):
         raise NotImplementedError
