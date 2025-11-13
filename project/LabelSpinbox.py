@@ -51,7 +51,6 @@ class PairRadioButton(tk.Frame):
 
 
 if __name__ == "__main__":
-    #################################SOME ERRORS
     root = tk.Tk()
     root.title("TEST")
 

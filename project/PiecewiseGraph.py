@@ -100,6 +100,10 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.rbs=PairRadioButton(self,["Linear","Cubic Splines"],on_change)
         self.add_button = tk.Button(text="Add Point", command=add)
         self.remove_button = tk.Button(text="Remove Point", command=remove)
+
+        self.place_widgets()
+
+    def place_widgets(self):
         self.rbs.grid(column=0, row=0)
         self.add_button.grid(column=0, row=1)
         self.remove_button.grid(column=0, row=2)

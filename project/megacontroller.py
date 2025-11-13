@@ -7,13 +7,15 @@ class MegaController:
 
         self.model=None
 
-        self.place_widgets()
-
-    def place_widgets(self):
         self.graph = tk.Label(bg="black")
         self.cb = tk.Label(bg="grey")
         self.settings=tk.Label(bg="lightgray")
         self.calc=tk.Label(bg="darkgrey")
+
+        self.place_widgets()
+
+    def place_widgets(self):
+
 
         self.cb.grid(row=0, column=1, sticky="nsew", padx=(5,10), pady=(10,5))
         self.settings.grid(row=1, column=1, sticky="nsew",padx=(5,10), pady=(5,5))

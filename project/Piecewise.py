@@ -11,6 +11,16 @@ def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
                 B ** (n - 1) - A ** (n - 1)) / (n - 1) + d * (B ** (n - 2) - A ** (n - 2)) / (n - 2)
 
 
+def binarysearchforx(targetp, minimum, maximum, func):
+    middle = (minimum + maximum) / 2
+    if np.isclose(func(middle), targetp):
+        return middle
+    if func(middle) < targetp:
+        return binarysearchforx(targetp, middle, maximum, func)
+    elif func(middle) > targetp:
+        return binarysearchforx(targetp, minimum, middle, func)
+    return None
+
 class Piecewise:
     def __init__(self, points):
         self._points = points
@@ -114,6 +124,7 @@ class AbstractStatisticalModel:
         return self.parameters
 
     def cdf(self, x):
+
         if type(x) == np.ndarray:
             return [self.cdf(c) for c in x]
         total = 0.0
@@ -140,7 +151,10 @@ class AbstractStatisticalModel:
 
     def pxlessthan(self,x):
         if self.mini <= x :
-            return self.cdf(min(x,self.maxi))
+            if self.is_discrete:
+                return self.cdf(min(x-1,self.maxi))
+            else:
+                return self.cdf(min(x,self.maxi))
         return 0
 
     def pxlessthanequalto(self,x):
@@ -163,9 +177,7 @@ class AbstractStatisticalModel:
 
     def pxexclusivein(self,a,b):
         return self.pxlessthan(b)-self.pxlessthan(a)
-
-    #FIND x from P
-
+    #FIND p from x
     def xplessthan(self,p):
         if self.is_discrete:
             prevx = None
@@ -176,17 +188,49 @@ class AbstractStatisticalModel:
                     break
             return prevx
         else:
-            ######## ERRORS
-            def binarysearchforx(targetp,minimum,maximum,func):
-                middle=(minimum + maximum)/2
-                if np.isclose(func(middle), targetp):
-                    return middle
-                if func(middle)<targetp:
-                    return binarysearchforx(targetp,middle,maximum,func)
-                elif func(middle)>targetp:
-                    return binarysearchforx(targetp,minimum,targetp,func)
-                return None
-            return binarysearchforx(p,self.mini,self.maxi,self.cdf)
+            return binarysearchforx(p,self.mini,self.maxi,self.pxlessthan)
+
+    def xplessthanequalto(self,p):
+        if self.is_discrete:
+            prevx = None
+            for x in range(self.mini, self.maxi+1):
+                if self.pxlessthanequalto(x) <= p:
+                    prevx = x
+                else:
+                    break
+            return prevx
+        else:
+            return binarysearchforx(p,self.mini,self.maxi,self.pxlessthan)
+
+    def xpgreaterthan(self,p):
+        if self.is_discrete:
+            prevx = None
+            for x in range(self.maxi, self.mini-1,-1):
+                if self.pxgreaterthan(x) <= p:
+                    prevx = x
+                else:
+                    break
+            return prevx
+        else:
+            return binarysearchforx(p,self.maxi,self.mini,self.pxgreaterthan)
+
+    def xpgreaterthanequalto(self,p):
+        if self.is_discrete:
+            prevx = None
+            for x in range(self.maxi, self.mini-1,-1):
+                if self.pxgreaterthanequalto(x) <= p:
+                    prevx = x
+                else:
+                    break
+            return prevx
+        else:
+            return binarysearchforx(p,self.maxi,self.mini,self.pxgreaterthan)
+
+    def xpinclusivein(self,p):
+        raise NotImplementedError
+
+    def xpexclusivein(self,p):
+        raise NotImplementedError
 
     def expectation(self):
         raise NotImplementedError
@@ -214,6 +258,15 @@ class Normal(AbstractStatisticalModel):
         sigma = self.parameters["sigma"].value
         return sigma ** 2
 
+    def xpexclusivein(self,p):
+        mu=self.parameters["mu"].value
+        def xbetweenmuandx(x):
+            return self.cdf(x)-self.pxlessthan(mu)
+        distance_from_mean=binarysearchforx(p/2,self.mini,self.maxi,xbetweenmuandx)
+        return mu - distance_from_mean, mu + distance_from_mean
+
+    def xpinclusivein(self,p):
+        return self.xpexclusivein(p)
 
 class Binomial(AbstractStatisticalModel):
     def __init__(self, parameters=None):
@@ -421,6 +474,11 @@ Exponential o--	 Parameters
 
 if __name__ == '__main__':
     # import matplotlib.pyplot as plt
+    pmu=Parameter("mu",-999,999,1,0)
+    psigma=Parameter("sigma",-999,999,1,1)
+
+    norm=Normal({"mu":pmu,"sigma":psigma})
+    print(norm.xpinclusivein(0.4))
     """
     x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
     if t == 'line':
