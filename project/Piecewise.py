@@ -3,7 +3,7 @@ import numpy as np
 import math
 from scipy.special import comb
 
-from project.piecewisecubicsplines import piecewise_cubic_spline
+from project.piecewisecubicsplines import piecewise_cubic_spline, integratepiecewise
 
 
 def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
@@ -76,12 +76,14 @@ class Piecewise:
         total = 0
         for p, piece in enumerate(self.pieces):
             x1, x2, a, b, c, d = piece
-            if A and B:
+
+            lower_bound = x1
+            upper_bound = x2
+            if A:
                 lower_bound = max(A, x1)
+            if B:
                 upper_bound = min(B, x2)
-            else:
-                lower_bound = x1
-                upper_bound = x2
+
             if lower_bound < upper_bound:
                 total += integrate_nbic(lower_bound, upper_bound, a, b, c, d, 3)
         return total
@@ -95,6 +97,46 @@ class Piecewise:
 
     def variance(self):
         return self.expectation(sq=True) - self.expectation() ** 2
+
+    def pxlessthan(self,x):
+        return self.integrate_piecewise(B=x)
+
+    def pxlessthanequalto(self,x):
+        return self.pxlessthan(x)
+
+    def pxgreaterthan(self,x):
+        return 1-self.pxlessthan(x)
+
+    def pxgreaterthanequalto(self,x):
+        return self.pxgreaterthan(x)
+
+    def pxinclusivein(self, a, b):
+        return self.pxlessthan(b)-self.pxlessthan(a)
+
+    def pxexclusivein(self,a,b):
+        return self.pxinclusivein(a,b)
+
+    #FIND p from x
+    def xplessthan(self,p):
+        xs = [pt[0] for pt in self._points]
+        return binarysearchforx(p,min(xs),max(xs),self.pxlessthan)
+
+    def xplessthanequalto(self,p):
+        return self.xplessthan(p)
+
+    def xpgreaterthan(self,p):
+        return self.xplessthan(1-p)
+
+    def xpgreaterthanequalto(self,p):
+        return self.xpgreaterthan(p)
+
+    def xpinclusivein(self,p):
+        raise NotImplementedError
+
+    def xpexclusivein(self,p):
+        raise NotImplementedError
+
+
 
 
 class AbstractStatisticalModel:

@@ -1,5 +1,5 @@
 import tkinter as tk
-from importlib.metadata import Distribution
+from tkinter import ttk
 
 import mplcursors
 from matplotlib.figure import Figure
@@ -56,10 +56,21 @@ class DistributionGraph(tk.Frame):
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
-    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals):
+    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals,shadeinclmin=None,shadeinclmax=None):
         self.ax.clear()
+
+        if shadeinclmin is not None or shadeinclmax is not None:
+            if shadeinclmin is None:
+                shadeinclmin = min(x_vals)
+            if shadeinclmax is None:
+                shadeinclmax = max(x_vals)
+
         if graph_type == 'bar':
             bars=self.ax.bar(x_vals, y_vals)
+            if shadeinclmin is not None and shadeinclmax is not None:
+                for bar, x in zip(bars, x_vals):
+                    if shadeinclmin <= x <= shadeinclmax:
+                        bar.set_color('orange')
             if self.showcursors:
                 cursor = mplcursors.cursor(bars, hover=True)
                 @cursor.connect("add")
@@ -72,6 +83,10 @@ class DistributionGraph(tk.Frame):
             plot = self.ax.plot(x_vals, y_vals)
             self.ax.set_ylim(bottom=0)
             self.ax.set_xlim(right=max(x_vals), left=min(x_vals))
+            if shadeinclmin is not None and shadeinclmax is not None:
+                mask = (x_vals >= shadeinclmin) & (x_vals <= shadeinclmax)
+                self.ax.fill_between(x_vals[mask], 0, y_vals[mask], color='green', alpha=0.5)
+
             if self.showcursors:
                 cursor = mplcursors.cursor(plot, hover=True)
 
@@ -91,7 +106,7 @@ class DistributionSettingsFrame(tk.Frame):
         self.controller = controller
         self.on_change = on_change
 
-        for param in parameters:
+        for param in parameters.values():
             LabelSpinbox(self,param,self.on_change).pack()
 
 class PiecewiseSettingsFrame(tk.Frame):
@@ -108,24 +123,103 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.add_button.grid(column=0, row=1)
         self.remove_button.grid(column=0, row=2)
 
+class CalculationFrame(tk.Frame):
+    def __init__(self, master, model,shadebetween):
+        super().__init__(master)
+        self.model = model
+        self.shadebetween = shadebetween
+
+        self.l1 = tk.Label(self, text="P(X", width=2)
+        self.cb = ttk.Combobox(self, values=["<", "≤"] + ["="] * (not isinstance(self.model, Normal)) + ["≥", ">", "< <", "≤ ≤"],width=2)
+
+        self.e1var=tk.StringVar()
+        self.e2var=tk.StringVar()
+        self.e3var=tk.StringVar()
+
+        self.e1 = tk.Entry(self, width=6,textvariable=self.e1var)
+        self.l2 = tk.Label(self, text=")=", width=2)
+        self.e2 = tk.Entry(self, width=6,textvariable=self.e2var)
+
+        self.l1a = tk.Label(self, text="P(", width=2)
+        self.l1bvar = tk.StringVar(self)
+        self.l1bvar.set("X")
+
+        self.l1b = tk.Label(self, textvariable=self.l1bvar, width=2)
+        self.e3 = tk.Entry(self, width=6,textvariable=self.e3var)
+
+        self.e1.bind('<KeyRelease>', self.e1_updating)
+        self.e2.bind('<KeyRelease>', self.e2_updating)
+        self.e3.bind('<KeyRelease>', self.e3_updating)
+
+        self.cb.bind("<<ComboboxSelected>>", self.refresh)
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        for widget in self.winfo_children():
+            widget.pack_forget()
+        if self.cb.get() not in ["< <","≤ ≤"]:
+            self.l1.pack(side="left")
+            self.cb.pack(side="left")
+        else:
+            self.l1a.pack(side="left")
+            self.e3.pack(side="left")
+            self.l1b.pack(side="left")
+            self.cb.pack(side="left")
+
+        self.e1.pack(side="left")
+        self.l2.pack(side="left")
+        self.e2.pack(side="left")
+
+    def refresh(self, *args):
+        self.l1bvar.set(str(self.cb.get())[0] + "X")
+        self.e2.config(state="normal")
+        if ((not isinstance(self.model, Normal)) and self.cb.get() in ["< <","≤ ≤"]) or self.cb.get() == "=":
+            self.e2.config(state="disabled")
+
+        self.place_widgets()
+
+    def e1_updating(self, *args):
+        try:
+            a = np.float64(self.e3var.get())
+        except ValueError:
+            a=0
+        x = np.float64(self.e1var.get())
+        b=x
+        pdict={"<":self.model.pxlessthan(x),
+               "≤":self.model.pxlessthanequalto(x),
+               "=":self.model.pxequals(x),
+               "≥":self.model.pxgreaterthanequalto(x),
+               ">":self.model.pxgreaterthan(x),
+               "< <":self.model.pxexclusivein(a,b),
+               "≤ ≤":self.model.pxinclusivein(a, b),
+               }
+        self.e2var.set(f"{pdict[self.cb.get()]:.4f}")
+
+    def e2_updating(self, *args):
+        p = np.float64(self.e2var.get())
+        if self.cb.get() not in ["< <","≤ ≤"]:
+            pdict={"<":self.model.xplessthan(p),
+                   "≤":self.model.xplessthanequalto(p),
+                   "≥":self.model.xpgreaterthanequalto(p),
+                   ">":self.model.xpgreaterthan(p),
+                   }
+            self.e1var.set(f"{pdict[self.cb.get()]:.4f}")
+        else:
+            a,b=self.model.xpexclusivein(p)
+            self.e1var.set(f"{b:.4f}")
+            self.e3var.set(f"{a:.4f}")
+
+    def e3_updating(self, *args):
+        a = np.float64(self.e3var.get())
+        b = np.float64(self.e1var.get())
+        pdict={"< <":self.model.pxexclusivein(a,b),
+               "≤ ≤":self.model.pxinclusivein(a, b),
+               }
+        self.e2var.set(f"{pdict[self.cb.get()]:.4f}")
 
 
-if __name__ == '__main__':
-    from Piecewise import Parameter
-    def cb(option=None):
-        print("hello",option)
-    def add():
-        print("add")
-    def remove():
-        print("remove")
-    root = tk.Tk()
-    #settings=DistributionSettingsFrame(root,None,[Parameter("mu",-999,999,1,0),Parameter("sigma",-999,999,1,1)],cb)
-    settings=PiecewiseSettingsFrame(root,None,cb,add,remove)
-    settings.grid(column=0, row=0)
-    root.mainloop()
-
-
-    """
+if __name__ == "__main__":
     from Piecewise import Normal, Parameter, Binomial
     mu=Parameter("mu",-999,999,1,0)
     sigma=Parameter("sigma",-999,999,1,1)
@@ -136,7 +230,45 @@ if __name__ == '__main__':
     root = tk.Tk()
 
     graph = DistributionGraph(root,"hi",showcursors=False)
-    graph.update_plot(*norm.get_plot_data())
+    graph.update_plot(*norm.get_plot_data(),shadeinclmin=1)
     graph.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
-    """
+
+
+
+
+
+if __name__ == '__main__':
+    from project.Piecewise import Normal, Parameter,Binomial
+    n=Parameter("n",1,999,1,10)
+    p=Parameter("p",0,1,0.05,0.5)
+    binom=Binomial({"n":n,"p":p})
+
+    params={"mu":Parameter("mu",-999,999,1,0),"sigma":Parameter("sigma",-999,999,1,1)}
+    norm=Normal(params)
+    root = tk.Tk()
+    def shbet(a,b):
+        print(a,b)
+    cframe=CalculationFrame(root,norm,shbet)
+    cframe.grid(column=0, row=0)
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    quit()
+    from Piecewise import Parameter
+    def cb(option=None):
+        print("hello",option)
+    def add():
+        print("add")
+    def remove():
+        print("remove")
+    root = tk.Tk()
+    params={"mu":Parameter("mu",-999,999,1,0),"sigma":Parameter("sigma",-999,999,1,1)}
+
+    settings=DistributionSettingsFrame(root,None,params,cb)
+    #settings=PiecewiseSettingsFrame(root,None,cb,add,remove)
+    settings.grid(column=0, row=0)
+    root.mainloop()
+
+

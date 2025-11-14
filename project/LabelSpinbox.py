@@ -61,5 +61,5 @@ if __name__ == "__main__":
 
     controller = PairRadioButton(root,["Linear","Cubic Splines"],callback)
     #controller = LabelSpinbox(root,Parameter("p",0,1,0.01,0.5),callback)
-    controller.pack()
+    controller.grid(row=0,column=0)
     root.mainloop()
