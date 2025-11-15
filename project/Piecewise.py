@@ -23,10 +23,21 @@ def binarysearchforx(targetp, minimum, maximum, func):
 
 class Piecewise:
     def __init__(self, points):
+        self.is_discrete = False
         self._points = points
         self.is_normalised = False
         self.pieces = []
         self.calculate_pieces()
+
+    @property
+    def mini(self):
+        x,y=zip(*self._points)
+        return min(x)
+
+    @property
+    def maxi(self):
+        x,y=zip(*self._points)
+        return max(x)
 
     def get_points(self):
         return self._points
@@ -514,13 +525,16 @@ Exponential o--	 Parameters
 # TODO: DOUBLE CLICK TO ADD
 
 
+
 if __name__ == '__main__':
+
     # import matplotlib.pyplot as plt
     pmu=Parameter("mu",-999,999,1,0)
     psigma=Parameter("sigma",-999,999,1,1)
 
     norm=Normal({"mu":pmu,"sigma":psigma})
     print(norm.xpinclusivein(0.4))
+
     """
     x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
     if t == 'line':

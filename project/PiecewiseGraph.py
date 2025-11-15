@@ -109,6 +109,7 @@ class DistributionSettingsFrame(tk.Frame):
         for param in parameters.values():
             LabelSpinbox(self,param,self.on_change).pack()
 
+
 class PiecewiseSettingsFrame(tk.Frame):
     def __init__(self, master, controller,on_change,add,remove):
         super().__init__(master)
@@ -122,6 +123,7 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.rbs.grid(column=0, row=0)
         self.add_button.grid(column=0, row=1)
         self.remove_button.grid(column=0, row=2)
+
 
 class CalculationFrame(tk.Frame):
     def __init__(self, master, model,shadebetween):
@@ -195,6 +197,7 @@ class CalculationFrame(tk.Frame):
                "≤ ≤":self.model.pxinclusivein(a, b),
                }
         self.e2var.set(f"{pdict[self.cb.get()]:.4f}")
+        self.update_shading()
 
     def e2_updating(self, *args):
         p = np.float64(self.e2var.get())
@@ -209,6 +212,7 @@ class CalculationFrame(tk.Frame):
             a,b=self.model.xpexclusivein(p)
             self.e1var.set(f"{b:.4f}")
             self.e3var.set(f"{a:.4f}")
+        self.update_shading()
 
     def e3_updating(self, *args):
         a = np.float64(self.e3var.get())
@@ -217,9 +221,80 @@ class CalculationFrame(tk.Frame):
                "≤ ≤":self.model.pxinclusivein(a, b),
                }
         self.e2var.set(f"{pdict[self.cb.get()]:.4f}")
+        self.update_shading()
 
+    def update_shading(self):
+        if self.model.is_discrete:
+            boundsdict = {"<":{"shadeinclmax":np.float64(self.e1var.get())-1},
+                          "≤":{"shadeinclmax":np.float64(self.e1var.get())},
+                          "=":{"shadeinclmin":np.float64(self.e1var.get()),"shadeinclmax":np.float64(self.e1var.get())},
+                          "≥":{"shadeinclmin":np.float64(self.e1var.get())},
+                          ">":{"shadeinclmin":np.float64(self.e1var.get())+1},
+                          "< <":{"shadeinclmin":np.float64(self.e3var.get())+1,"shadeinclmax":np.float64(self.e1var.get())-1},
+                          "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
+                          }
+        else:
+            boundsdict = {"<":{"shadeinclmax":np.float64(self.e1var.get())},
+                          "≤":{"shadeinclmax":np.float64(self.e1var.get())},
+                          "=":{"shadeinclmin":np.float64(self.e1var.get()),"shadeinclmax":np.float64(self.e1var.get())},
+                          "≥":{"shadeinclmin":np.float64(self.e1var.get())},
+                          ">":{"shadeinclmin":np.float64(self.e1var.get())},
+                          "< <":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())},
+                          "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
+                          }
+        self.shadebetween(**boundsdict[self.cb.get()])
+
+
+class ComboboxFrame(tk.Frame):
+    def __init__(self, master, options, on_change):
+        super().__init__(master)
+        self.grid_propagate(False)
+
+        self.on_change = on_change
+        self.cb=ttk.Combobox(self,values=options)
+        self.text=tk.StringVar()
+        self.definition=tk.Label(self,textvariable=self.text)
+
+        self.cb.bind('<<ComboboxSelected>>',self.callback())
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        self.cb.grid(row=0, column=0, pady=5,)
+        self.definition.grid(row=0, column=1, pady=5,)
+        self.grid_columnconfigure(0, weight=1)
+
+    def callback(self, *args):
+        self.on_change(self.cb.get())
+
+    def cleardefinition(self):
+        self.text.set("")
+        self.place_widgets()
+
+
+    def setdefinition(self,definition):
+        self.text.set(definition)
+        self.place_widgets()
+
+
+
+if __name__ == '__main__':
+    from project.Piecewise import Normal, Parameter,Binomial
+    n=Parameter("n",1,999,1,10)
+    p=Parameter("p",0,1,0.05,0.5)
+    binom=Binomial({"n":n,"p":p})
+
+    params={"mu":Parameter("mu",-999,999,1,0),"sigma":Parameter("sigma",-999,999,1,1)}
+    norm=Normal(params)
+    root = tk.Tk()
+    def shbet(shadeinclmin=None,shadeinclmax=None):
+        print(shadeinclmin,shadeinclmax)
+    cframe=CalculationFrame(root,norm,shbet)
+    cframe.grid(column=0, row=0)
+    root.mainloop()
 
 if __name__ == "__main__":
+    quit()
     from Piecewise import Normal, Parameter, Binomial
     mu=Parameter("mu",-999,999,1,0)
     sigma=Parameter("sigma",-999,999,1,1)
@@ -233,26 +308,6 @@ if __name__ == "__main__":
     graph.update_plot(*norm.get_plot_data(),shadeinclmin=1)
     graph.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
-
-
-
-
-
-if __name__ == '__main__':
-    from project.Piecewise import Normal, Parameter,Binomial
-    n=Parameter("n",1,999,1,10)
-    p=Parameter("p",0,1,0.05,0.5)
-    binom=Binomial({"n":n,"p":p})
-
-    params={"mu":Parameter("mu",-999,999,1,0),"sigma":Parameter("sigma",-999,999,1,1)}
-    norm=Normal(params)
-    root = tk.Tk()
-    def shbet(a,b):
-        print(a,b)
-    cframe=CalculationFrame(root,norm,shbet)
-    cframe.grid(column=0, row=0)
-    root.mainloop()
-
 
 if __name__ == '__main__':
     quit()
