@@ -1,7 +1,9 @@
 import tkinter as tk
-from functools import partial
 
-from PiecewiseGraph import ComboboxFrame
+from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame
+from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric
+from project.PiecewiseGraph import DistributionSettingsFrame
+
 
 class MegaController:
     def __init__(self, root):
@@ -11,20 +13,54 @@ class MegaController:
 
 
         self.graph = tk.Label(bg="black")
-        self.cb = ComboboxFrame(self.root, ["Normal","Binomial"],self.set_distribution)
+        self.cb = ComboboxFrame(self.root, ["Normal","Binomial","Exponential","Poisson","Geometric","Piecewise"],self.set_distribution)
         self.settings=tk.Label(bg="lightgray")
         self.calc=tk.Label(bg="darkgrey")
 
         self.place_widgets()
 
     def set_distribution(self, dist_type):
-        print("hello")
-        print(dist_type)
         match dist_type:
             case "Normal":
-                self.cb.setdefinition("X~B(n,p)")
+                self.cb.setdefinition(r"$X \sim N(\mu, \sigma^2)$")
+                params={"mu":Parameter("μ",-999,999,0.1,0),
+                        "sigma":Parameter("σ",0.1,999,0.1,1)}
+                self.model=Normal(params)
+                self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
+                self.place_widgets()
             case "Binomial":
-                self.cb.setdefinition("X~")
+                self.cb.setdefinition(r"$X \sim B(n, p)$")
+                params={"n":Parameter("n",1,999,1,10),
+                        "p":Parameter("p",0,1,0.01,0.5)}
+                self.model=Binomial(params)
+                self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
+                self.place_widgets()
+            case "Exponential":
+                self.cb.setdefinition(r"$X \sim \text{Exp}(\lambda)$")
+                params={"lambda":Parameter("λ",0,999,.1,5)}
+                self.model=Exponential(params)
+                self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
+                self.place_widgets()
+            case "Poisson":
+                self.cb.setdefinition(r"$X \sim \text{Poi}(\lambda)$")
+                params={"lambda":Parameter("λ",0,999,.1,5)}
+                self.model=Poisson(params)
+                self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
+                self.place_widgets()
+
+            case "Geometric":
+                self.cb.setdefinition(r"$X \sim \text{Geo}(p)$")
+                params={"p":Parameter("p",0,1,0.01,0.5)}
+                self.model=Geometric(params)
+                self.settings = DistributionSettingsFrame(self.root, params, self.refresh)
+                self.place_widgets()
+            case "Piecewise":
+                self.cb.cleardefinition()
+                self.model=Piecewise([(1,1),(2,3),(3,2)])
+                self.settings=PiecewiseSettingsFrame(self.root,self.refresh,self.model.add_point,self.model.remove_point)
+                self.place_widgets()
+    def refresh(self,*args):
+        print("hello")
 
 
     def place_widgets(self):

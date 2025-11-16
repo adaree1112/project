@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from project.DraggablePoint import DraggablePoint
+from project.LaTeXformulaimage import latex_to_tk_image
 from project.LabelSpinbox import LabelSpinbox, PairRadioButton
 
 
@@ -101,9 +102,10 @@ class DistributionGraph(tk.Frame):
 
 
 class DistributionSettingsFrame(tk.Frame):
-    def __init__(self, master, controller,parameters,on_change):
+    def __init__(self, master,parameters,on_change):
         super().__init__(master)
-        self.controller = controller
+        self.grid_propagate(False)
+
         self.on_change = on_change
 
         for param in parameters.values():
@@ -111,11 +113,13 @@ class DistributionSettingsFrame(tk.Frame):
 
 
 class PiecewiseSettingsFrame(tk.Frame):
-    def __init__(self, master, controller,on_change,add,remove):
+    def __init__(self, master,on_change,add,remove):
         super().__init__(master)
+        self.grid_propagate(False)
+
         self.rbs=PairRadioButton(self,["Linear","Cubic Splines"],on_change)
-        self.add_button = tk.Button(text="Add Point", command=add)
-        self.remove_button = tk.Button(text="Remove Point", command=remove)
+        self.add_button = tk.Button(self,text="Add Point", command=add)
+        self.remove_button = tk.Button(self, text="Remove Point", command=remove)
 
         self.place_widgets()
 
@@ -128,6 +132,7 @@ class PiecewiseSettingsFrame(tk.Frame):
 class CalculationFrame(tk.Frame):
     def __init__(self, master, model,shadebetween):
         super().__init__(master)
+        self.grid_propagate(False)
         self.model = model
         self.shadebetween = shadebetween
 
@@ -252,28 +257,31 @@ class ComboboxFrame(tk.Frame):
 
         self.on_change = on_change
         self.cb=ttk.Combobox(self,values=options)
-        self.text=tk.StringVar()
-        self.definition=tk.Label(self,textvariable=self.text)
+        self.definition=tk.Label(self,)
 
-        self.cb.bind('<<ComboboxSelected>>',self.callback())
+        self.latex_image=None
+
+        self.cb.bind('<<ComboboxSelected>>',self.callback)
 
         self.place_widgets()
 
     def place_widgets(self):
         self.cb.grid(row=0, column=0, pady=5,)
-        self.definition.grid(row=0, column=1, pady=5,)
+        self.definition.grid(row=1, column=0, pady=5,)
         self.grid_columnconfigure(0, weight=1)
 
     def callback(self, *args):
         self.on_change(self.cb.get())
 
     def cleardefinition(self):
-        self.text.set("")
+        self.definition.config(image=None)
         self.place_widgets()
 
 
     def setdefinition(self,definition):
-        self.text.set(definition)
+        self.cleardefinition()
+        self.latex_image = latex_to_tk_image(definition)
+        self.definition.config(image=self.latex_image)
         self.place_widgets()
 
 
