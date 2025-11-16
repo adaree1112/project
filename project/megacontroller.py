@@ -1,8 +1,8 @@
 import tkinter as tk
 
-from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame
+from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph
 from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric
-from project.PiecewiseGraph import DistributionSettingsFrame
+from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph
 
 
 class MegaController:
@@ -27,41 +27,70 @@ class MegaController:
                         "sigma":Parameter("σ",0.1,999,0.1,1)}
                 self.model=Normal(params)
                 self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
-                self.place_widgets()
+                self.graph=DistributionGraph(self.root)
+                self.refresh()
             case "Binomial":
                 self.cb.setdefinition(r"$X \sim B(n, p)$")
                 params={"n":Parameter("n",1,999,1,10),
                         "p":Parameter("p",0,1,0.01,0.5)}
                 self.model=Binomial(params)
                 self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
-                self.place_widgets()
+                self.graph=DistributionGraph(self.root)
+                self.refresh()
             case "Exponential":
                 self.cb.setdefinition(r"$X \sim \text{Exp}(\lambda)$")
                 params={"lambda":Parameter("λ",0,999,.1,5)}
                 self.model=Exponential(params)
                 self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
-                self.place_widgets()
+                self.graph=DistributionGraph(self.root)
+                self.refresh()
             case "Poisson":
                 self.cb.setdefinition(r"$X \sim \text{Poi}(\lambda)$")
                 params={"lambda":Parameter("λ",0,999,.1,5)}
                 self.model=Poisson(params)
                 self.settings=DistributionSettingsFrame(self.root,params,self.refresh)
-                self.place_widgets()
+                self.graph=DistributionGraph(self.root)
+                self.refresh()
 
             case "Geometric":
                 self.cb.setdefinition(r"$X \sim \text{Geo}(p)$")
                 params={"p":Parameter("p",0,1,0.01,0.5)}
                 self.model=Geometric(params)
                 self.settings = DistributionSettingsFrame(self.root, params, self.refresh)
-                self.place_widgets()
+                self.graph=DistributionGraph(self.root)
+                self.refresh()
             case "Piecewise":
                 self.cb.cleardefinition()
                 self.model=Piecewise([(1,1),(2,3),(3,2)])
-                self.settings=PiecewiseSettingsFrame(self.root,self.refresh,self.model.add_point,self.model.remove_point)
-                self.place_widgets()
-    def refresh(self,*args):
-        print("hello")
+                self.settings=PiecewiseSettingsFrame(self.root,self.refresh,self.handle_add_point,self.handle_remove_point,self.handle_normalise)
+                self.graph=PiecewiseGraph(self.root,self,self.handle_add_point)
+                self.refresh()
 
+    def refresh(self,*args):
+        if isinstance(self.model,Piecewise):
+            points = self.model.get_points()
+            self.model.calculate_pieces()
+            self.graph.update_plot(points, self.model.pieces)
+        else:
+            x_vals,y_vals,graph_type,cdf_vals=self.model.get_plot_data()
+            self.graph.update_plot(x_vals,y_vals,graph_type,cdf_vals)#
+        self.place_widgets()
+
+    def point_moved(self,old_x,old_y,new_x,new_y):
+        self.model.update_point(old_x,old_y,new_x,new_y)
+        self.refresh()
+
+    def handle_add_point(self,point=None):
+        self.model.add_point(point=point)
+        self.refresh()
+
+    def handle_remove_point(self):
+        self.model.remove_point()
+        self.refresh()
+
+    def handle_normalise(self):
+        self.model.normalise()
+        self.refresh()
 
     def place_widgets(self):
         self.graph.grid(row=0, column=0, rowspan=3, sticky="nsew", padx=(10,5), pady=10)

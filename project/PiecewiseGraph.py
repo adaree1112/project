@@ -11,15 +11,17 @@ from project.LabelSpinbox import LabelSpinbox, PairRadioButton
 
 
 class PiecewiseGraph(tk.Frame):
-    def __init__(self, master, controller):
+    def __init__(self, master, controller,add_point):
         super().__init__(master)
         self.controller = controller
+        self.add_point = add_point
 
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax = self.fig.add_subplot()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.canvas.draw()
+        self.canvas.get_tk_widget().bind("<Double-Button-1>", self.add_point_on_click)
 
         self.draggable_points = []
 
@@ -45,11 +47,15 @@ class PiecewiseGraph(tk.Frame):
         self.ax.autoscale_view()
         self.canvas.draw()
 
+    def add_point_on_click(self, event):
+        x_data = self.ax.get_xlim()[0] + (self.ax.get_xlim()[1] - self.ax.get_xlim()[0]) * event.x / self.canvas.get_tk_widget().winfo_width()
+        y_data = self.ax.get_ylim()[1] + (self.ax.get_ylim()[0] - self.ax.get_ylim()[1]) * event.y / self.canvas.get_tk_widget().winfo_height()
+        y_data = max(0, y_data)
+        self.add_point(point=(x_data, y_data))
 
 class DistributionGraph(tk.Frame):
-    def __init__(self, master, controller, showcursors=False):
+    def __init__(self, master, showcursors=False):
         super().__init__(master)
-        self.controller = controller
         self.showcursors = showcursors
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax = self.fig.add_subplot()
@@ -113,13 +119,14 @@ class DistributionSettingsFrame(tk.Frame):
 
 
 class PiecewiseSettingsFrame(tk.Frame):
-    def __init__(self, master,on_change,add,remove):
+    def __init__(self, master,on_change,add,remove,normalise):
         super().__init__(master)
         self.grid_propagate(False)
 
         self.rbs=PairRadioButton(self,["Linear","Cubic Splines"],on_change)
         self.add_button = tk.Button(self,text="Add Point", command=add)
         self.remove_button = tk.Button(self, text="Remove Point", command=remove)
+        self.normalise_button=tk.Button(self,text="Normalise",command=normalise)
 
         self.place_widgets()
 
@@ -127,6 +134,7 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.rbs.grid(column=0, row=0)
         self.add_button.grid(column=0, row=1)
         self.remove_button.grid(column=0, row=2)
+        self.normalise_button.grid(column=0, row=3)
 
 
 class CalculationFrame(tk.Frame):

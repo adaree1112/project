@@ -3,7 +3,7 @@ import numpy as np
 import math
 from scipy.special import comb
 
-from project.piecewisecubicsplines import piecewise_cubic_spline, integratepiecewise
+from project.piecewisecubicsplines import piecewise_cubic_spline
 
 
 def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
@@ -45,20 +45,23 @@ class Piecewise:
     def get_num_points(self):
         return len(self._points)
 
-    def add_point(self):
-        self.is_normalised = False
-        if not self._points:
-            self._points.append([(0, 0), (1, 1)])
-        elif len(self._points) < 2:
-            if self._points[0] != (1, 1):
-                self._points.append([(1, 1)])
+    def add_point(self,point=None):
+        if point is None:
+            self.is_normalised = False
+            if not self._points:
+                self._points.append([(0, 0), (1, 1)])
+            elif len(self._points) < 2:
+                if self._points[0] != (1, 1):
+                    self._points.append([(1, 1)])
+                else:
+                    self._points.append([(0, 0)])
             else:
-                self._points.append([(0, 0)])
+                currx, curry = zip(*self._points)
+                new_x = random.uniform(min(currx), max(currx))
+                new_y = random.uniform(0, max(curry))
+                self._points.append((new_x, new_y))
         else:
-            currx, curry = zip(*self._points)
-            new_x = random.uniform(min(currx), max(currx))
-            new_y = random.uniform(0, max(curry))
-            self._points.append((new_x, new_y))
+            self._points.append(point)
 
     def remove_point(self):
         self.is_normalised = False
@@ -151,11 +154,16 @@ class Piecewise:
 
 
 class AbstractStatisticalModel:
-    def __init__(self, parameters, is_discrete, mini, maxi):
+    def __init__(self, parameters, is_discrete,):
         self.parameters = parameters
         self.is_discrete = is_discrete
-        self.mini = mini
-        self.maxi = maxi
+
+    @property
+    def mini(self):
+        raise NotImplementedError
+    @property
+    def maxi(self):
+        raise NotImplementedError
 
     def pdf(self, x):
         raise NotImplementedError
@@ -178,7 +186,7 @@ class AbstractStatisticalModel:
 
     def cdf(self, x):
 
-        if type(x) == np.ndarray:
+        if isinstance(x,np.ndarray):
             return [self.cdf(c) for c in x]
         total = 0.0
 
@@ -294,14 +302,20 @@ class AbstractStatisticalModel:
 
 class Normal(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        mu = parameters["mu"].value
-        sigma = parameters["sigma"].value
-        super().__init__(parameters, False, mu - 5 * sigma, mu + 5 * sigma)
+        super().__init__(parameters, False)
 
     def pdf(self, x):
         mu = self.parameters["mu"].value
         sigma = self.parameters["sigma"].value
         return (1 / (sigma * np.sqrt(2 * math.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+    @property
+    def mini(self):
+        return self.expectation()-5*self.variance()**.5
+
+    @property
+    def maxi(self):
+        return self.expectation()+5*self.variance()**.5
 
     def expectation(self):
         mu = self.parameters["mu"].value
@@ -323,8 +337,15 @@ class Normal(AbstractStatisticalModel):
 
 class Binomial(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        n = parameters["n"].value
-        super().__init__(parameters, True, 0, n)
+        super().__init__(parameters, True)
+
+    @property
+    def mini(self):
+        return 0
+
+    @property
+    def maxi(self):
+        return int(self.parameters["n"].value)
 
     def pdf(self, x):
         n = self.parameters["n"].value
@@ -344,10 +365,19 @@ class Binomial(AbstractStatisticalModel):
 
 class Poisson(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        lam = parameters["lambda"].value
-        super().__init__(parameters, True, 0, int(lam + 5 * math.sqrt(lam)))
+        super().__init__(parameters, True)
+
+    @property
+    def mini(self):
+        return 0
+
+    @property
+    def maxi(self):
+        return int(self.expectation()+5*self.variance()**.5)
 
     def pdf(self, x):
+        if isinstance(x,np.ndarray):
+            return [self.pdf(c) for c in x]
         lam = self.parameters["lambda"].value
         return np.exp(-lam) * lam ** x / math.factorial(x)
 
@@ -362,8 +392,15 @@ class Poisson(AbstractStatisticalModel):
 
 class Geometric(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        p = parameters["p"].value
-        super().__init__(parameters, True, 1, int(1 / p + 5 * (1 - p) ** .5 / p))
+        super().__init__(parameters, True)
+
+    @property
+    def mini(self):
+        return 0
+
+    @property
+    def maxi(self):
+        return int(self.expectation()+5*self.variance()**.5)
 
     def pdf(self, x):
         p = self.parameters["p"].value
@@ -380,8 +417,15 @@ class Geometric(AbstractStatisticalModel):
 
 class Exponential(AbstractStatisticalModel):
     def __init__(self, parameters=None):
-        lam = parameters["lambda"].value
-        super().__init__(parameters, False, 0, int(1 / lam + 5 / lam))
+        super().__init__(parameters, False)
+
+    @property
+    def mini(self):
+        return 0
+
+    @property
+    def maxi(self):
+        return self.expectation()+5*self.variance()**.5
 
     def pdf(self, x):
         lam = self.parameters["lambda"].value

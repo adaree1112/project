@@ -8,7 +8,7 @@ class PiecewiseController:
         self.model = Piecewise([(2,3),(3,2),(4,4)])
 
         # The Controller creates the View
-        self.graph = PiecewiseGraph(root, self)
+        self.graph = PiecewiseGraph(root, self, add_point=None)
         self.graph.pack(fill=tk.BOTH, expand=True)
 
         ##wont be here eventually
