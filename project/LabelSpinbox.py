@@ -44,7 +44,7 @@ class PairRadioButton(tk.Frame):
             ttk.Radiobutton(master, text=text, variable=self.v,value=value,command=self.on_option_change).grid(column=i,row=0)
 
     def on_option_change(self):
-        self.on_change(self.options[int(self.v.get())])
+        self.on_change(piecewise_type=self.options[int(self.v.get())])
 
     def get(self):
         return self.options[int(self.v.get())]

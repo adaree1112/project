@@ -3,7 +3,7 @@ import numpy as np
 import math
 from scipy.special import comb
 
-from project.piecewisecubicsplines import piecewise_cubic_spline
+from project.piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
 
 
 def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
@@ -68,9 +68,12 @@ class Piecewise:
         if len(self._points) > 2:
             self._points.pop(random.randint(0, len(self._points) - 1))
 
-    def calculate_pieces(self):
+    def calculate_pieces(self, linear=False):
         sorted_points = sorted(self._points, key=lambda p: p[0])
-        self.pieces = piecewise_cubic_spline(sorted_points)
+        if not linear:
+            self.pieces = piecewise_cubic_spline(sorted_points)
+        else:
+            self.pieces= piecewise_linear(sorted_points)
 
     def update_point(self, old_x, old_y, new_x, new_y):
         for i, (x, y) in enumerate(self._points):
@@ -93,9 +96,9 @@ class Piecewise:
 
             lower_bound = x1
             upper_bound = x2
-            if A:
+            if A is not None:
                 lower_bound = max(A, x1)
-            if B:
+            if B is not None:
                 upper_bound = min(B, x2)
 
             if lower_bound < upper_bound:
@@ -112,8 +115,14 @@ class Piecewise:
     def variance(self):
         return self.expectation(sq=True) - self.expectation() ** 2
 
+    def cdf(self,x_vals):
+        return [self.pxlessthan(x) for x in x_vals]
+
     def pxlessthan(self,x):
         return self.integrate_piecewise(B=x)
+
+    def pxequals(self,x):
+        return None
 
     def pxlessthanequalto(self,x):
         return self.pxlessthan(x)
@@ -192,7 +201,7 @@ class AbstractStatisticalModel:
 
         if self.is_discrete:
             total = 0.0
-            for i in range(self.mini, x + 1):
+            for i in range(int(self.mini), int(x) + 1):
                 total += self.pdf(i)
         else:
             n = 1000

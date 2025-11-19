@@ -5,6 +5,8 @@ import mplcursors
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+
+from project.Piecewise import Normal, Piecewise
 from project.DraggablePoint import DraggablePoint
 from project.LaTeXformulaimage import latex_to_tk_image
 from project.LabelSpinbox import LabelSpinbox, PairRadioButton
@@ -15,6 +17,7 @@ class PiecewiseGraph(tk.Frame):
         super().__init__(master)
         self.controller = controller
         self.add_point = add_point
+        self.showcursors = True
 
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax = self.fig.add_subplot()
@@ -25,7 +28,13 @@ class PiecewiseGraph(tk.Frame):
 
         self.draggable_points = []
 
-    def update_plot(self, points, pieces):
+    def update_plot(self, points, pieces,cdf_func=None,shadeinclmin=None,shadeinclmax=None):
+        if shadeinclmin is not None or shadeinclmax is not None:
+            if shadeinclmin is None:
+                shadeinclmin = min([p[0] for p in points])
+            if shadeinclmax is None:
+                shadeinclmax = max([p[0] for p in points])
+
         self.ax.clear()
         self.draggable_points = []
 
@@ -37,11 +46,30 @@ class PiecewiseGraph(tk.Frame):
         x, y = zip(*points)
         self.ax.plot(x, y, 'ro')
 
+
         for piece in pieces:
             lower, upper, a, b, c, d, = piece
             x = np.linspace(lower, upper, 50)
             y = a * x ** 3 + b * x ** 2 + c * x + d
-            self.ax.plot(x, y, 'b-')
+            plot=self.ax.plot(x, y, 'b-')
+
+            if shadeinclmin is not None and shadeinclmax is not None:
+                if shadeinclmin < upper and shadeinclmax > lower:
+                    x_shade = np.linspace(max(shadeinclmin, lower), min(shadeinclmax, upper), 100)
+                    y_shade = a * x_shade ** 3 + b * x_shade ** 2 + c * x_shade + d
+                    self.ax.fill_between(x_shade, y_shade, 0, color='yellow', alpha=0.3)
+
+
+            if self.showcursors:
+                x_vals=x
+                cursor = mplcursors.cursor(plot, hover=True)
+                cdf_vals = cdf_func(x_vals)
+                @cursor.connect("add")
+                def on_add(sel):
+                    x, y = sel.target
+                    index = np.argmin(np.abs(x_vals - x))
+                    sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
+                    sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.ax.set_ylim(bottom=0)
         self.ax.autoscale_view()
@@ -123,7 +151,7 @@ class PiecewiseSettingsFrame(tk.Frame):
         super().__init__(master)
         self.grid_propagate(False)
 
-        self.rbs=PairRadioButton(self,["Linear","Cubic Splines"],on_change)
+        self.rbs=PairRadioButton(self,["Cubic Splines","Linear"],on_change)
         self.add_button = tk.Button(self,text="Add Point", command=add)
         self.remove_button = tk.Button(self, text="Remove Point", command=remove)
         self.normalise_button=tk.Button(self,text="Normalise",command=normalise)
@@ -145,7 +173,7 @@ class CalculationFrame(tk.Frame):
         self.shadebetween = shadebetween
 
         self.l1 = tk.Label(self, text="P(X", width=2)
-        self.cb = ttk.Combobox(self, values=["<", "≤"] + ["="] * (not isinstance(self.model, Normal)) + ["≥", ">", "< <", "≤ ≤"],width=2)
+        self.cb = ttk.Combobox(self, values=["<", "≤"] + ["="] * (not (isinstance(self.model, Normal) or isinstance(self.model,Piecewise)) ) + ["≥", ">", "< <", "≤ ≤"],width=2)
 
         self.e1var=tk.StringVar()
         self.e2var=tk.StringVar()
@@ -191,8 +219,8 @@ class CalculationFrame(tk.Frame):
         self.e2.config(state="normal")
         if ((not isinstance(self.model, Normal)) and self.cb.get() in ["< <","≤ ≤"]) or self.cb.get() == "=":
             self.e2.config(state="disabled")
-
         self.place_widgets()
+        self.update_shading()
 
     def e1_updating(self, *args):
         try:
@@ -210,6 +238,7 @@ class CalculationFrame(tk.Frame):
                "≤ ≤":self.model.pxinclusivein(a, b),
                }
         self.e2var.set(f"{pdict[self.cb.get()]:.4f}")
+        print(self.e2var.get())
         self.update_shading()
 
     def e2_updating(self, *args):
@@ -242,20 +271,22 @@ class CalculationFrame(tk.Frame):
                           "≤":{"shadeinclmax":np.float64(self.e1var.get())},
                           "=":{"shadeinclmin":np.float64(self.e1var.get()),"shadeinclmax":np.float64(self.e1var.get())},
                           "≥":{"shadeinclmin":np.float64(self.e1var.get())},
-                          ">":{"shadeinclmin":np.float64(self.e1var.get())+1},
-                          "< <":{"shadeinclmin":np.float64(self.e3var.get())+1,"shadeinclmax":np.float64(self.e1var.get())-1},
-                          "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
-                          }
+                          ">":{"shadeinclmin":np.float64(self.e1var.get())+1}}
+            if self.cb.get() in ["< <","≤ ≤"]:
+                boundsdict={"< <":{"shadeinclmin":np.float64(self.e3var.get())+1,"shadeinclmax":np.float64(self.e1var.get())-1},
+                            "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
+                            }
         else:
             boundsdict = {"<":{"shadeinclmax":np.float64(self.e1var.get())},
                           "≤":{"shadeinclmax":np.float64(self.e1var.get())},
-                          "=":{"shadeinclmin":np.float64(self.e1var.get()),"shadeinclmax":np.float64(self.e1var.get())},
                           "≥":{"shadeinclmin":np.float64(self.e1var.get())},
-                          ">":{"shadeinclmin":np.float64(self.e1var.get())},
-                          "< <":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())},
-                          "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
-                          }
-        self.shadebetween(**boundsdict[self.cb.get()])
+                          ">":{"shadeinclmin":np.float64(self.e1var.get())},}
+            if self.cb.get() in ["< <","≤ ≤"]:
+                boundsdict ={"< <":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())},
+                             "≤ ≤":{"shadeinclmin":np.float64(self.e3var.get()),"shadeinclmax":np.float64(self.e1var.get())}
+                             }
+        self.shadebetween(boundsdict[self.cb.get()])
+
 
 
 class ComboboxFrame(tk.Frame):

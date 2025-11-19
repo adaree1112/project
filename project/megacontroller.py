@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph
+from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
 from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric
 from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph
 
@@ -11,6 +11,9 @@ class MegaController:
 
         self.model=None
 
+        self.piecewise_type="Cubic Splines"
+
+        self.shadedict={"shadeinclmin":None,"shadeinclmax":None}
 
         self.graph = tk.Label(bg="black")
         self.cb = ComboboxFrame(self.root, ["Normal","Binomial","Exponential","Poisson","Geometric","Piecewise"],self.set_distribution)
@@ -20,6 +23,7 @@ class MegaController:
         self.place_widgets()
 
     def set_distribution(self, dist_type):
+        self.shadedict={}
         match dist_type:
             case "Normal":
                 self.cb.setdefinition(r"$X \sim N(\mu, \sigma^2)$")
@@ -62,35 +66,52 @@ class MegaController:
             case "Piecewise":
                 self.cb.cleardefinition()
                 self.model=Piecewise([(1,1),(2,3),(3,2)])
-                self.settings=PiecewiseSettingsFrame(self.root,self.refresh,self.handle_add_point,self.handle_remove_point,self.handle_normalise)
+                self.settings=PiecewiseSettingsFrame(self.root,self.set_piecewise_type,self.handle_add_point,self.handle_remove_point,self.handle_normalise)
                 self.graph=PiecewiseGraph(self.root,self,self.handle_add_point)
                 self.refresh()
+        self.calc=CalculationFrame(self.root,self.model,self.shadebetween)
+        self.refresh()
 
-    def refresh(self,*args):
+    def shadebetween(self,shadedict):
+        print(shadedict)
+        self.shadedict=shadedict
+        self.refresh()
+
+    def set_piecewise_type(self,piecewise_type="Cubic Splines"):
+        self.piecewise_type=piecewise_type
+        self.refresh()
+        self.calc.e1_updating()
+
+
+    def refresh(self,piecewise_type="Cubic Splines"):
         if isinstance(self.model,Piecewise):
             points = self.model.get_points()
-            self.model.calculate_pieces()
-            self.graph.update_plot(points, self.model.pieces)
+            self.model.calculate_pieces(linear=(self.piecewise_type=="Linear"))
+            self.graph.update_plot(points, self.model.pieces,**self.shadedict,cdf_func=self.model.cdf)
         else:
             x_vals,y_vals,graph_type,cdf_vals=self.model.get_plot_data()
-            self.graph.update_plot(x_vals,y_vals,graph_type,cdf_vals)#
+            self.graph.update_plot(x_vals,y_vals,graph_type,cdf_vals,**self.shadedict)
         self.place_widgets()
 
     def point_moved(self,old_x,old_y,new_x,new_y):
         self.model.update_point(old_x,old_y,new_x,new_y)
         self.refresh()
+        self.calc.e1_updating()
 
     def handle_add_point(self,point=None):
         self.model.add_point(point=point)
         self.refresh()
+        self.calc.e1_updating()
 
     def handle_remove_point(self):
         self.model.remove_point()
         self.refresh()
+        self.calc.e1_updating()
 
     def handle_normalise(self):
         self.model.normalise()
         self.refresh()
+        self.calc.e1_updating()
 
     def place_widgets(self):
         self.graph.grid(row=0, column=0, rowspan=3, sticky="nsew", padx=(10,5), pady=10)
