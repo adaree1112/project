@@ -489,7 +489,6 @@ class Parameter:
     def get_spinbox_args(self):
         return {"from_": self.minimum, "to": self.maximum, "increment": self.step,"width":5}
 
-
 """@startuml
 class "Piecewise"{
 -points: List

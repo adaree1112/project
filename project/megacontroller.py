@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
+from project.LabelSpinbox import TwoLabels
 from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric
 from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph
 
@@ -18,6 +19,7 @@ class MegaController:
         self.graph = tk.Label(bg="black")
         self.cb = ComboboxFrame(self.root, ["Normal","Binomial","Exponential","Poisson","Geometric","Piecewise"],self.set_distribution)
         self.settings=tk.Label(bg="lightgray")
+        self.eandvar=tk.Label(bg="dimgrey")
         self.calc=tk.Label(bg="darkgrey")
 
         self.place_widgets()
@@ -84,6 +86,7 @@ class MegaController:
 
 
     def refresh(self,piecewise_type="Cubic Splines"):
+        self.eandvar=TwoLabels(self.root,["E(X)","Var(X)"],[self.model.expectation(), self.model.variance()])
         if isinstance(self.model,Piecewise):
             points = self.model.get_points()
             self.model.calculate_pieces(linear=(self.piecewise_type=="Linear"))
@@ -114,17 +117,19 @@ class MegaController:
         self.calc.e1_updating()
 
     def place_widgets(self):
-        self.graph.grid(row=0, column=0, rowspan=3, sticky="nsew", padx=(10,5), pady=10)
+        self.graph.grid(row=0, column=0, rowspan=4, sticky="nsew", padx=(10,5), pady=10)
         self.cb.grid(row=0, column=1, sticky="nsew", padx=(5,10),pady=(10,5))
         self.settings.grid(row=1, column=1, sticky="nsew", padx=(5,10),pady=5)
-        self.calc.grid(row=2, column=1, sticky="nsew", padx=(5,10),pady=(5,10))
+        self.eandvar.grid(row=2,column=1, sticky="nsew", padx=(5,10),pady=5)
+        self.calc.grid(row=3, column=1, sticky="nsew", padx=(5,10),pady=(5,10))
 
         self.root.grid_columnconfigure(0, weight=2)
         self.root.grid_columnconfigure(1, weight=1)
 
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=3)
-        self.root.grid_rowconfigure(2, weight=2)
+        self.root.grid_rowconfigure(1, weight=2)
+        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_rowconfigure(3, weight=2)
 
 
 

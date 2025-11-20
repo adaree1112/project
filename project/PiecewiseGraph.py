@@ -46,12 +46,18 @@ class PiecewiseGraph(tk.Frame):
         x, y = zip(*points)
         self.ax.plot(x, y, 'ro')
 
+        x_vals=np.array([])
+        y_vals=np.array([])
 
         for piece in pieces:
             lower, upper, a, b, c, d, = piece
             x = np.linspace(lower, upper, 50)
             y = a * x ** 3 + b * x ** 2 + c * x + d
-            plot=self.ax.plot(x, y, 'b-')
+
+            x_vals = np.concatenate((x_vals, x))
+            y_vals = np.concatenate((y_vals, y))
+            print(x_vals, y_vals)
+
 
             if shadeinclmin is not None and shadeinclmax is not None:
                 if shadeinclmin < upper and shadeinclmax > lower:
@@ -59,17 +65,17 @@ class PiecewiseGraph(tk.Frame):
                     y_shade = a * x_shade ** 3 + b * x_shade ** 2 + c * x_shade + d
                     self.ax.fill_between(x_shade, y_shade, 0, color='yellow', alpha=0.3)
 
+        plot=self.ax.plot(x_vals, y_vals, 'b-')
 
-            if self.showcursors:
-                x_vals=x
-                cursor = mplcursors.cursor(plot, hover=True)
-                cdf_vals = cdf_func(x_vals)
-                @cursor.connect("add")
-                def on_add(sel):
-                    x, y = sel.target
-                    index = np.argmin(np.abs(x_vals - x))
-                    sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
-                    sel.annotation.get_bbox_patch().set(alpha=0.8)
+        if self.showcursors:
+            cursor = mplcursors.cursor(plot, hover=True)
+            cdf_vals = cdf_func(x_vals)
+            @cursor.connect("add")
+            def on_add(sel):
+                x, y = sel.target
+                index = np.argmin(np.abs(x_vals - x))
+                sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
+                sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.ax.set_ylim(bottom=0)
         self.ax.autoscale_view()
@@ -82,7 +88,7 @@ class PiecewiseGraph(tk.Frame):
         self.add_point(point=(x_data, y_data))
 
 class DistributionGraph(tk.Frame):
-    def __init__(self, master, showcursors=False):
+    def __init__(self, master, showcursors=True):
         super().__init__(master)
         self.showcursors = showcursors
         self.fig = Figure(figsize=(5, 5), dpi=100)

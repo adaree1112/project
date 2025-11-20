@@ -50,6 +50,18 @@ class PairRadioButton(tk.Frame):
         return self.options[int(self.v.get())]
 
 
+class TwoLabels(tk.Frame):
+    def __init__(self, master, names,values):
+        super().__init__(master)
+        self.names = names
+        self.values = values
+
+        for i,(name,value) in enumerate(zip(names,values)):
+            tk.Label(self, text=name).grid(column=0, row=i)
+            tk.Label(self, text=f"{value:.2f}").grid(column=1, row=i)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("TEST")
@@ -58,8 +70,8 @@ if __name__ == "__main__":
         print("hello2",a)
         pass
 
-
-    controller = PairRadioButton(root,["Linear","Cubic Splines"],callback)
+    controller=TwoLabels(root,["A","B"],[1,2])
+#    controller = PairRadioButton(root,["Linear","Cubic Splines"],callback)
     #controller = LabelSpinbox(root,Parameter("p",0,1,0.01,0.5),callback)
     controller.grid(row=0,column=0)
     root.mainloop()
