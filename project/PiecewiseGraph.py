@@ -56,8 +56,6 @@ class PiecewiseGraph(tk.Frame):
 
             x_vals = np.concatenate((x_vals, x))
             y_vals = np.concatenate((y_vals, y))
-            print(x_vals, y_vals)
-
 
             if shadeinclmin is not None and shadeinclmax is not None:
                 if shadeinclmin < upper and shadeinclmax > lower:
@@ -69,12 +67,10 @@ class PiecewiseGraph(tk.Frame):
 
         if self.showcursors:
             cursor = mplcursors.cursor(plot, hover=True)
-            cdf_vals = cdf_func(x_vals)
             @cursor.connect("add")
             def on_add(sel):
                 x, y = sel.target
-                index = np.argmin(np.abs(x_vals - x))
-                sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
+                sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_func(x):.4f}")
                 sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.ax.set_ylim(bottom=0)
@@ -97,7 +93,7 @@ class DistributionGraph(tk.Frame):
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
-    def update_plot(self, x_vals, y_vals,graph_type,cdf_vals,shadeinclmin=None,shadeinclmax=None):
+    def update_plot(self, x_vals, y_vals,graph_type,cdf_func=None,shadeinclmin=None,shadeinclmax=None,):
         self.ax.clear()
 
         if shadeinclmin is not None or shadeinclmax is not None:
@@ -134,8 +130,7 @@ class DistributionGraph(tk.Frame):
                 @cursor.connect("add")
                 def on_add(sel):
                     x, y = sel.target
-                    index=np.argmin(np.abs(x_vals - x))
-                    sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_vals[index]:.4f}")
+                    sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X≤x)={cdf_func(x):.4f}")
                     sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.canvas.draw()

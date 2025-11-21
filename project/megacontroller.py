@@ -92,8 +92,8 @@ class MegaController:
             self.model.calculate_pieces(linear=(self.piecewise_type=="Linear"))
             self.graph.update_plot(points, self.model.pieces,**self.shadedict,cdf_func=self.model.cdf)
         else:
-            x_vals,y_vals,graph_type,cdf_vals=self.model.get_plot_data()
-            self.graph.update_plot(x_vals,y_vals,graph_type,cdf_vals,**self.shadedict)
+            x_vals,y_vals,graph_type,cdf_func=self.model.get_plot_data()
+            self.graph.update_plot(x_vals,y_vals,graph_type,cdf_func=cdf_func,**self.shadedict)
         self.place_widgets()
 
     def point_moved(self,old_x,old_y,new_x,new_y):
@@ -126,7 +126,7 @@ class MegaController:
         self.root.grid_columnconfigure(0, weight=2)
         self.root.grid_columnconfigure(1, weight=1)
 
-        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(0, weight=2)
         self.root.grid_rowconfigure(1, weight=2)
         self.root.grid_rowconfigure(2, weight=1)
         self.root.grid_rowconfigure(3, weight=2)

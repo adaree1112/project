@@ -116,7 +116,10 @@ class Piecewise:
         return self.expectation(sq=True) - self.expectation() ** 2
 
     def cdf(self,x_vals):
-        return [self.pxlessthan(x) for x in x_vals]
+        if isinstance(x_vals, np.ndarray):
+            return [self.pxlessthan(x) for x in x_vals]
+        else:
+            return self.pxlessthan(x_vals)
 
     def pxlessthan(self,x):
         return self.integrate_piecewise(B=x)
@@ -166,6 +169,7 @@ class AbstractStatisticalModel:
     def __init__(self, parameters, is_discrete,):
         self.parameters = parameters
         self.is_discrete = is_discrete
+        self.x=0
 
     @property
     def mini(self):
@@ -182,13 +186,11 @@ class AbstractStatisticalModel:
             x_vals = np.array(range(self.mini, self.maxi))
             y_vals = self.pdf(x_vals)
             graphtype = 'bar'
-            cdf_vals=None
         else:
             x_vals = np.linspace(self.mini, self.maxi, 100)
             y_vals = self.pdf(x_vals)
             graphtype = 'line'
-            cdf_vals=self.cdf(x_vals)
-        return x_vals, y_vals, graphtype, cdf_vals
+        return x_vals, y_vals, graphtype,self.pxlessthanequalto
 
     def get_parameters(self):
         return self.parameters
@@ -316,7 +318,7 @@ class Normal(AbstractStatisticalModel):
     def pdf(self, x):
         mu = self.parameters["mu"].value
         sigma = self.parameters["sigma"].value
-        return (1 / (sigma * np.sqrt(2 * math.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+        return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     @property
     def mini(self):
