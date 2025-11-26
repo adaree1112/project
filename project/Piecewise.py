@@ -340,7 +340,8 @@ class Normal(AbstractStatisticalModel):
         mu=self.parameters["mu"].value
         def xbetweenmuandx(x):
             return self.cdf(x)-self.pxlessthan(mu)
-        distance_from_mean=binarysearchforx(p/2,self.mini,self.maxi,xbetweenmuandx)
+
+        distance_from_mean=binarysearchforx(p/2,self.mini,self.maxi,xbetweenmuandx)-mu
         return mu - distance_from_mean, mu + distance_from_mean
 
     def xpinclusivein(self,p):
