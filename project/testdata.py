@@ -14,13 +14,14 @@ def make_dataset(mu, sigma):
         for i in range(len(xs)-1)
     ]
 
+    step = 3.0 / 50  # = 0.06
 
     sym_interval_data = []
     for i in range(1, 51):
-        a = mu - i * sigma * 0.1
-        b = mu + i * sigma * 0.1
+        a = mu - i * sigma * step
+        b = mu + i * sigma * step
         p = norm.cdf(b, mu, sigma) - norm.cdf(a, mu, sigma)
-        sym_interval_data.append((round(float(a), 4), round(float(b), 4), round(float(p), 4)))
+        sym_interval_data.append((float(a), float(b), float(p)))
     return pdf_data, cdf_data, interval_data, sym_interval_data
 
 datasets = [

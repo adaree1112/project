@@ -324,8 +324,6 @@ class ComboboxFrame(tk.Frame):
         self.definition.config(image=self.latex_image)
         self.place_widgets()
 
-
-
 if __name__ == '__main__':
     from project.Piecewise import Normal, Parameter,Binomial
     n=Parameter("n",1,999,1,10)

@@ -13,7 +13,7 @@ def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
 
 def binarysearchforx(targetp, minimum, maximum, func):
     middle = (minimum + maximum) / 2
-    if np.isclose(func(middle), targetp):
+    if np.isclose(func(middle), targetp,atol=1e-10):
         return middle
     if func(middle) < targetp:
         return binarysearchforx(targetp, middle, maximum, func)
@@ -588,7 +588,7 @@ if __name__ == '__main__':
     psigma=Parameter("sigma",-999,999,1,1)
 
     norm=Normal({"mu":pmu,"sigma":psigma})
-    print(norm.xpinclusivein(0.4))
+    print(norm.xpinclusivein(0.5))
 
     """
     x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
