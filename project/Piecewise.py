@@ -5,21 +5,55 @@ from scipy.special import comb
 
 from project.piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
 
+dice_art = {
+    1: ("┌─────────┐",
+        "│         │",
+        "│    ●    │",
+        "│         │",
+        "└─────────┘"),
+    2: ("┌─────────┐",
+        "│  ●      │",
+        "│         │",
+        "│      ●  │",
+        "└─────────┘"),
+    3: ("┌─────────┐",
+        "│  ●      │",
+        "│    ●    │",
+        "│      ●  │",
+        "└─────────┘"),
+    4: ("┌─────────┐",
+        "│  ●   ●  │",
+        "│         │",
+        "│  ●   ●  │",
+        "└─────────┘"),
+    5: ("┌─────────┐",
+        "│  ●   ●  │",
+        "│    ●    │",
+        "│  ●   ●  │",
+        "└─────────┘"),
+    6: ("┌─────────┐",
+        "│  ●   ●  │",
+        "│  ●   ●  │",
+        "│  ●   ●  │",
+        "└─────────┘")
+}
+
 
 def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
     return a * (B ** (n + 1) - A ** (n + 1)) / (n + 1) + b * (B ** n - A ** n) / n + c * (
-                B ** (n - 1) - A ** (n - 1)) / (n - 1) + d * (B ** (n - 2) - A ** (n - 2)) / (n - 2)
+            B ** (n - 1) - A ** (n - 1)) / (n - 1) + d * (B ** (n - 2) - A ** (n - 2)) / (n - 2)
 
 
 def binarysearchforx(targetp, minimum, maximum, func):
     middle = (minimum + maximum) / 2
-    if np.isclose(func(middle), targetp,atol=1e-10):
+    if np.isclose(func(middle), targetp, atol=1e-10):
         return middle
     if func(middle) < targetp:
         return binarysearchforx(targetp, middle, maximum, func)
     elif func(middle) > targetp:
         return binarysearchforx(targetp, minimum, middle, func)
     return None
+
 
 class Piecewise:
     def __init__(self, points):
@@ -31,12 +65,12 @@ class Piecewise:
 
     @property
     def mini(self):
-        x,y=zip(*self._points)
+        x, y = zip(*self._points)
         return min(x)
 
     @property
     def maxi(self):
-        x,y=zip(*self._points)
+        x, y = zip(*self._points)
         return max(x)
 
     def get_points(self):
@@ -45,7 +79,7 @@ class Piecewise:
     def get_num_points(self):
         return len(self._points)
 
-    def add_point(self,point=None):
+    def add_point(self, point=None):
         if point is None:
             self.is_normalised = False
             if not self._points:
@@ -73,7 +107,7 @@ class Piecewise:
         if not linear:
             self.pieces = piecewise_cubic_spline(sorted_points)
         else:
-            self.pieces= piecewise_linear(sorted_points)
+            self.pieces = piecewise_linear(sorted_points)
 
     def update_point(self, old_x, old_y, new_x, new_y):
         for i, (x, y) in enumerate(self._points):
@@ -115,65 +149,64 @@ class Piecewise:
     def variance(self):
         return self.expectation(sq=True) - self.expectation() ** 2
 
-    def cdf(self,x_vals):
+    def cdf(self, x_vals):
         if isinstance(x_vals, np.ndarray):
             return [self.pxlessthan(x) for x in x_vals]
         else:
             return self.pxlessthan(x_vals)
 
-    def pxlessthan(self,x):
+    def pxlessthan(self, x):
         return self.integrate_piecewise(B=x)
 
-    def pxequals(self,x):
+    def pxequals(self, x):
         return None
 
-    def pxlessthanequalto(self,x):
+    def pxlessthanequalto(self, x):
         return self.pxlessthan(x)
 
-    def pxgreaterthan(self,x):
-        return 1-self.pxlessthan(x)
+    def pxgreaterthan(self, x):
+        return 1 - self.pxlessthan(x)
 
-    def pxgreaterthanequalto(self,x):
+    def pxgreaterthanequalto(self, x):
         return self.pxgreaterthan(x)
 
     def pxinclusivein(self, a, b):
-        return self.pxlessthan(b)-self.pxlessthan(a)
+        return self.pxlessthan(b) - self.pxlessthan(a)
 
-    def pxexclusivein(self,a,b):
-        return self.pxinclusivein(a,b)
+    def pxexclusivein(self, a, b):
+        return self.pxinclusivein(a, b)
 
-    #FIND p from x
-    def xplessthan(self,p):
+    # FIND p from x
+    def xplessthan(self, p):
         xs = [pt[0] for pt in self._points]
-        return binarysearchforx(p,min(xs),max(xs),self.pxlessthan)
+        return binarysearchforx(p, min(xs), max(xs), self.pxlessthan)
 
-    def xplessthanequalto(self,p):
+    def xplessthanequalto(self, p):
         return self.xplessthan(p)
 
-    def xpgreaterthan(self,p):
-        return self.xplessthan(1-p)
+    def xpgreaterthan(self, p):
+        return self.xplessthan(1 - p)
 
-    def xpgreaterthanequalto(self,p):
+    def xpgreaterthanequalto(self, p):
         return self.xpgreaterthan(p)
 
-    def xpinclusivein(self,p):
+    def xpinclusivein(self, p):
         raise NotImplementedError
 
-    def xpexclusivein(self,p):
+    def xpexclusivein(self, p):
         raise NotImplementedError
-
-
 
 
 class AbstractStatisticalModel:
-    def __init__(self, parameters, is_discrete,):
+    def __init__(self, parameters, is_discrete, ):
         self.parameters = parameters
         self.is_discrete = is_discrete
-        self.x=0
+        self.x = 0
 
     @property
     def mini(self):
         raise NotImplementedError
+
     @property
     def maxi(self):
         raise NotImplementedError
@@ -190,14 +223,14 @@ class AbstractStatisticalModel:
             x_vals = np.linspace(self.mini, self.maxi, 100)
             y_vals = self.pdf(x_vals)
             graphtype = 'line'
-        return x_vals, y_vals, graphtype,self.pxlessthanequalto
+        return x_vals, y_vals, graphtype, self.pxlessthanequalto
 
     def get_parameters(self):
         return self.parameters
 
     def cdf(self, x):
 
-        if isinstance(x,np.ndarray):
+        if isinstance(x, np.ndarray):
             return [self.cdf(c) for c in x]
         total = 0.0
 
@@ -214,32 +247,33 @@ class AbstractStatisticalModel:
             total += self.pdf(x) / 2.0
             total *= h
         return total
+
     ##FIND p from x
-    def pxequals(self,x):
+    def pxequals(self, x):
         if self.is_discrete:
             if self.mini <= x <= self.maxi:
                 return self.pdf(x)
         return 0
 
-    def pxlessthan(self,x):
-        if self.mini <= x :
+    def pxlessthan(self, x):
+        if self.mini <= x:
             if self.is_discrete:
-                return self.cdf(min(x-1,self.maxi))
+                return self.cdf(min(x - 1, self.maxi))
             else:
-                return self.cdf(min(x,self.maxi))
+                return self.cdf(min(x, self.maxi))
         return 0
 
-    def pxlessthanequalto(self,x):
+    def pxlessthanequalto(self, x):
         if self.is_discrete:
-            return self.pxlessthan(x+1)
+            return self.pxlessthan(x + 1)
         else:
             return self.pxlessthan(x)
 
-    def pxgreaterthan(self,x):
-        return 1-self.pxlessthanequalto(x)
+    def pxgreaterthan(self, x):
+        return 1 - self.pxlessthanequalto(x)
 
-    def pxgreaterthanequalto(self,x):
-        return 1-self.pxlessthan(x)
+    def pxgreaterthanequalto(self, x):
+        return 1 - self.pxlessthan(x)
 
     def pxinclusivein(self, a, b):
         if self.is_discrete:
@@ -247,61 +281,62 @@ class AbstractStatisticalModel:
         else:
             return self.pxlessthanequalto(b) - self.pxlessthanequalto(a)
 
-    def pxexclusivein(self,a,b):
-        return self.pxlessthan(b)-self.pxlessthan(a)
-    #FIND p from x
-    def xplessthan(self,p):
+    def pxexclusivein(self, a, b):
+        return self.pxlessthan(b) - self.pxlessthan(a)
+
+    # FIND p from x
+    def xplessthan(self, p):
         if self.is_discrete:
             prevx = None
-            for x in range(self.mini, self.maxi+1):
+            for x in range(self.mini, self.maxi + 1):
                 if self.pxlessthan(x) <= p:
                     prevx = x
                 else:
                     break
             return prevx
         else:
-            return binarysearchforx(p,self.mini,self.maxi,self.pxlessthan)
+            return binarysearchforx(p, self.mini, self.maxi, self.pxlessthan)
 
-    def xplessthanequalto(self,p):
+    def xplessthanequalto(self, p):
         if self.is_discrete:
             prevx = None
-            for x in range(self.mini, self.maxi+1):
+            for x in range(self.mini, self.maxi + 1):
                 if self.pxlessthanequalto(x) <= p:
                     prevx = x
                 else:
                     break
             return prevx
         else:
-            return binarysearchforx(p,self.mini,self.maxi,self.pxlessthan)
+            return binarysearchforx(p, self.mini, self.maxi, self.pxlessthan)
 
-    def xpgreaterthan(self,p):
+    def xpgreaterthan(self, p):
         if self.is_discrete:
             prevx = None
-            for x in range(self.maxi, self.mini-1,-1):
+            for x in range(self.maxi, self.mini - 1, -1):
                 if self.pxgreaterthan(x) <= p:
                     prevx = x
                 else:
                     break
             return prevx
         else:
-            return binarysearchforx(p,self.maxi,self.mini,self.pxgreaterthan)
+            return binarysearchforx(p, self.maxi, self.mini, self.pxgreaterthan)
 
-    def xpgreaterthanequalto(self,p):
+    def xpgreaterthanequalto(self, p):
         if self.is_discrete:
             prevx = None
-            for x in range(self.maxi, self.mini-1,-1):
+            for x in range(self.maxi, self.mini - 1, -1):
                 if self.pxgreaterthanequalto(x) <= p:
                     prevx = x
                 else:
                     break
             return prevx
         else:
-            return binarysearchforx(p,self.maxi,self.mini,self.pxgreaterthan)
+            return binarysearchforx(p, self.maxi, self.mini, self.pxgreaterthan)
 
-    def xpinclusivein(self,p):
+    def xpinclusivein(self, p):
         raise NotImplementedError
 
-    def xpexclusivein(self,p):
+    def xpexclusivein(self, p):
         raise NotImplementedError
 
     def expectation(self):
@@ -322,11 +357,11 @@ class Normal(AbstractStatisticalModel):
 
     @property
     def mini(self):
-        return self.expectation()-5*self.variance()**.5
+        return self.expectation() - 5 * self.variance() ** .5
 
     @property
     def maxi(self):
-        return self.expectation()+5*self.variance()**.5
+        return self.expectation() + 5 * self.variance() ** .5
 
     def expectation(self):
         mu = self.parameters["mu"].value
@@ -336,16 +371,18 @@ class Normal(AbstractStatisticalModel):
         sigma = self.parameters["sigma"].value
         return sigma ** 2
 
-    def xpexclusivein(self,p):
-        mu=self.parameters["mu"].value
-        def xbetweenmuandx(x):
-            return self.cdf(x)-self.pxlessthan(mu)
+    def xpexclusivein(self, p):
+        mu = self.parameters["mu"].value
 
-        distance_from_mean=binarysearchforx(p/2,self.mini,self.maxi,xbetweenmuandx)-mu
+        def xbetweenmuandx(x):
+            return self.cdf(x) - self.pxlessthan(mu)
+
+        distance_from_mean = binarysearchforx(p / 2, self.mini, self.maxi, xbetweenmuandx) - mu
         return mu - distance_from_mean, mu + distance_from_mean
 
-    def xpinclusivein(self,p):
+    def xpinclusivein(self, p):
         return self.xpexclusivein(p)
+
 
 class Binomial(AbstractStatisticalModel):
     def __init__(self, parameters=None):
@@ -385,10 +422,10 @@ class Poisson(AbstractStatisticalModel):
 
     @property
     def maxi(self):
-        return int(self.expectation()+5*self.variance()**.5)
+        return int(self.expectation() + 5 * self.variance() ** .5)
 
     def pdf(self, x):
-        if isinstance(x,np.ndarray):
+        if isinstance(x, np.ndarray):
             return [self.pdf(c) for c in x]
         lam = self.parameters["lambda"].value
         return np.exp(-lam) * lam ** x / math.factorial(x)
@@ -412,7 +449,7 @@ class Geometric(AbstractStatisticalModel):
 
     @property
     def maxi(self):
-        return int(self.expectation()+5*self.variance()**.5)
+        return int(self.expectation() + 5 * self.variance() ** .5)
 
     def pdf(self, x):
         p = self.parameters["p"].value
@@ -437,7 +474,7 @@ class Exponential(AbstractStatisticalModel):
 
     @property
     def maxi(self):
-        return self.expectation()+5*self.variance()**.5
+        return self.expectation() + 5 * self.variance() ** .5
 
     def pdf(self, x):
         lam = self.parameters["lambda"].value
@@ -479,9 +516,9 @@ class Parameter:
             pass
 
     def get_label(self):
-        return self.label+" = "
+        return self.label + " = "
 
-    def validate(self, value,):
+    def validate(self, value, ):
         print("hello")
         try:
             v = float(value)
@@ -490,7 +527,55 @@ class Parameter:
             return False
 
     def get_spinbox_args(self):
-        return {"from_": self.minimum, "to": self.maximum, "increment": self.step,"width":5}
+        return {"from_": self.minimum, "to": self.maximum, "increment": self.step, "width": 5}
+
+
+class Die:
+    def __init__(self):
+        self.num = 0
+        self.roll()
+
+    def roll(self):
+        self.num = random.randint(1, 6)
+        return self.num
+
+    def get_die(self):
+        return dice_art[self.num]
+
+class AbstractDicetribution:
+    def __init__(self):
+        self.dice_data = []
+
+    def get_dice_row(self):
+        raise NotImplementedError
+
+    def add_dice_data(self, n=1):
+        for i in range(n):
+            self.dice_data.append(self.get_dice_row())
+
+    def set_n_dice_data(self, n):
+        self.dice_data=[]
+        self.add_dice_data(n)
+
+    def show_dice_rows(self):
+        output=[]
+        for row in self.dice_data:
+            output.append("\n".join([" ".join([item[i] for item in [die.get_die() for die in row]]) for i in range(5)]))
+        return output
+
+    def get_graph(self):
+        raise NotImplementedError
+
+class GeoDice(AbstractDicetribution):
+    def get_dice_row(self):
+        n=6
+        dice=[Die()]
+        while dice[-1].num!=6:
+            dice.append(Die())
+        return dice
+
+
+
 
 """@startuml
 class "Piecewise"{
@@ -580,9 +665,21 @@ Exponential o--	 Parameters
 # TODO: DOUBLE CLICK TO ADD
 
 
-
 if __name__ == '__main__':
+    
+    b=GeoDice()
+    b.add_dice_data(100)
+    print("\n".join(b.show_dice_rows()))
+    
+    
+    # dice = [Die() for _ in range(7)]
+    #
+    # for _ in range(7):
+    #     for d in dice:
+    #         d.roll()
+    #     print("\n".join([" ".join([item[i] for item in [die.get_die() for die in dice]]) for i in range(5)]))
 
+    """
     # import matplotlib.pyplot as plt
     pmu=Parameter("mu",-999,999,1,0)
     psigma=Parameter("sigma",-999,999,1,1)
@@ -590,7 +687,7 @@ if __name__ == '__main__':
     norm=Normal({"mu":pmu,"sigma":psigma})
     print(norm.xpinclusivein(0.5))
 
-    """
+    
     x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
     if t == 'line':
         plt.plot(x,y)
