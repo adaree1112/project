@@ -54,6 +54,8 @@ def binarysearchforx(targetp, minimum, maximum, func):
         return binarysearchforx(targetp, minimum, middle, func)
     return None
 
+def mean(l):
+    return sum(l)/len(l)
 
 class Piecewise:
     def __init__(self, points):
@@ -577,11 +579,54 @@ class GeoDice(AbstractDicetribution):
             dice.append(Die())
         return dice
 
+    def get_graph(self):
+        x_vals=[i for i in range(1,max(len(r) for r in self.dice_data)+1)]
+        l_list=[len(r) for r in self.dice_data]
+        y_vals=[l_list.count(i) for i in x_vals]
+        return x_vals, y_vals
+
+class BinDice(AbstractDicetribution):
+    def __init__(self,n):
+        super().__init__()
+        self.n = n
+
+    def get_dice_row(self):
+        return [Die() for _ in range(self.n)]
+
+    def get_graph(self):
+        x_vals=[i for i in range(self.n)]
+        c_list=[r.count(6) for r in self.dice_data]
+        y_vals=[c.count(x_vals) for c in c_list]
+        return x_vals, y_vals
+
+class NormDice(AbstractDicetribution):
+    def __init__(self,n):
+        super().__init__()
+        self.n = n
+
+    def get_dice_row(self):
+        return [Die() for _ in range(self.n)]
+
+    def get_graph(self):
+        x_vals=np.linspace(1,6,100)
+        a_list=[mean([[d.num for d in dice] for dice in row]) for row in self.dice_data]
+
+
+
+
+
 
 
 
 if __name__ == '__main__':
 
-    b=GeoDice()
+    g=GeoDice()
+    g.add_dice_data(1000)
+    print("\n".join(g.show_dice_rows()))
+    print(g.get_dice_rows())
+    print(g.get_graph())
+    quit()
+    b=BinDice(10)
     b.add_dice_data(100)
+    print("\n".join(b.show_dice_rows()))
     print(b.get_dice_rows())
