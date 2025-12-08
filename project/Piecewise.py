@@ -557,6 +557,9 @@ class AbstractDicetribution:
         self.dice_data=[]
         self.add_dice_data(n)
 
+    def get_dice_rows(self):
+        return [[die.num for die in row] for row in self.dice_data]
+
     def show_dice_rows(self):
         output=[]
         for row in self.dice_data:
@@ -577,126 +580,8 @@ class GeoDice(AbstractDicetribution):
 
 
 
-"""@startuml
-class "Piecewise"{
--points: List
-+pieces: List
-+get_points()
-+get_num_points()
-+add_point()
-+remove_point()
-+calculate_pieces()
-+update_point()
-+normalise()
-+integrate_piecewise()
-+expectation()
-+variance()
-}
-
-abstract "AbstractStatisticalModel"{
-+parameters: List
-+is_discrete: Bool
-+mini: Float
-+maxi: Float
-+pdf() - not impletented
-+get_plot_data()
-+get_parameters()
-+cdf()
-+update_parameters()
-+expectation() - not implemented
-+variance() - not implemented
-}
-
-class Normal{
-+pdf()
-+expectation()
-+variance()
-}
-AbstractStatisticalModel<|--Normal
-
-class Binomial{
-+pdf()
-+expectation()
-+variance()
-}
-AbstractStatisticalModel<|--Binomial
-
-class Poisson{
-+pdf()
-+expectation()
-+variance()
-}
-AbstractStatisticalModel<|--Poisson
-
-class Geometric{
-+pdf()
-+expectation()
-+variance()
-}
-AbstractStatisticalModel<|--Geometric
-
-class Exponential{
-+pdf()
-+expectation()
-+variance()
-+cdf()
-}
-AbstractStatisticalModel<|--Exponential
-
-class Parameters{
-    - label
-    - minimum
-    - maximum
-    - step
-    + value <<property>>
-    + value() <<setter>>
-    + get_spinbox_args()
-}
-
-Binomial o--	 Parameters
-Normal o--	 Parameters
-Geometric o--	 Parameters
-Poisson o--	 Parameters
-Exponential o--	 Parameters
-@enduml"""
-
-# TODO: CLASS PARAMETER
-# TODO: TESTS
-# TODO: DOUBLE CLICK TO ADD
-
-
 if __name__ == '__main__':
-    
+
     b=GeoDice()
     b.add_dice_data(100)
-    print("\n".join(b.show_dice_rows()))
-    
-    
-    # dice = [Die() for _ in range(7)]
-    #
-    # for _ in range(7):
-    #     for d in dice:
-    #         d.roll()
-    #     print("\n".join([" ".join([item[i] for item in [die.get_die() for die in dice]]) for i in range(5)]))
-
-    """
-    # import matplotlib.pyplot as plt
-    pmu=Parameter("mu",-999,999,1,0)
-    psigma=Parameter("sigma",-999,999,1,1)
-
-    norm=Normal({"mu":pmu,"sigma":psigma})
-    print(norm.xpinclusivein(0.5))
-
-    
-    x,y,t=Binomial({"n":10,"p":0.25}).get_plot_data()
-    if t == 'line':
-        plt.plot(x,y)
-    elif t == 'bar':
-        print(x,y)
-        plt.bar(x,y)
-    plt.show()
-    
-
-    model=Normal({"sigma":10,"mu":0.25})#
-    print(model.cdf(3))
-    """
+    print(b.get_dice_rows())
