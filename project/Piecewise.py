@@ -611,7 +611,7 @@ class NormDice(AbstractDicetribution):
         return [Die() for _ in range(self.n)]
 
     def get_graph(self):
-        x_vals=np.linspace(1,6,81)
+        x_vals=np.linspace(1,6,161)
         a_list=[mean([dice.num for dice in row]) for row in self.dice_data]
         y_vals=[]
         width = (x_vals[1] - x_vals[0]) / 2
