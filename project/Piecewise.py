@@ -57,6 +57,9 @@ def binarysearchforx(targetp, minimum, maximum, func):
 def mean(l):
     return sum(l)/len(l)
 
+def count_less_than(l,x):
+    return sum([1 for i in l if i<=x])
+
 class Piecewise:
     def __init__(self, points):
         self.is_discrete = False
@@ -608,8 +611,15 @@ class NormDice(AbstractDicetribution):
         return [Die() for _ in range(self.n)]
 
     def get_graph(self):
-        x_vals=np.linspace(1,6,100)
-        a_list=[mean([[d.num for d in dice] for dice in row]) for row in self.dice_data]
+        x_vals=np.linspace(1,6,81)
+        a_list=[mean([dice.num for dice in row]) for row in self.dice_data]
+        y_vals=[]
+        width = (x_vals[1] - x_vals[0]) / 2
+        for x in x_vals:
+            upperbound=x+width
+            y_vals.append(count_less_than(a_list,upperbound) - sum(y_vals))
+        return x_vals, y_vals
+
 
 
 
@@ -620,6 +630,12 @@ class NormDice(AbstractDicetribution):
 
 if __name__ == '__main__':
 
+    n=NormDice(100)
+    n.add_dice_data(10000)
+    print(n.get_dice_rows())
+    print(n.get_graph())
+
+    quit()
     g=GeoDice()
     g.add_dice_data(1000)
     print("\n".join(g.show_dice_rows()))
