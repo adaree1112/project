@@ -5,39 +5,6 @@ from scipy.special import comb
 
 from project.piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
 
-dice_art = {
-    1: ("┌─────────┐",
-        "│         │",
-        "│    ●    │",
-        "│         │",
-        "└─────────┘"),
-    2: ("┌─────────┐",
-        "│  ●      │",
-        "│         │",
-        "│      ●  │",
-        "└─────────┘"),
-    3: ("┌─────────┐",
-        "│  ●      │",
-        "│    ●    │",
-        "│      ●  │",
-        "└─────────┘"),
-    4: ("┌─────────┐",
-        "│  ●   ●  │",
-        "│         │",
-        "│  ●   ●  │",
-        "└─────────┘"),
-    5: ("┌─────────┐",
-        "│  ●   ●  │",
-        "│    ●    │",
-        "│  ●   ●  │",
-        "└─────────┘"),
-    6: ("┌─────────┐",
-        "│  ●   ●  │",
-        "│  ●   ●  │",
-        "│  ●   ●  │",
-        "└─────────┘")
-}
-
 
 def integrate_nbic(A, B, a, b, c, d, n):  # defined for n>2
     return a * (B ** (n + 1) - A ** (n + 1)) / (n + 1) + b * (B ** n - A ** n) / n + c * (
@@ -55,7 +22,18 @@ def binarysearchforx(targetp, minimum, maximum, func):
     return None
 
 def mean(l):
+    if len(l)==0:
+        return -1
     return sum(l)/len(l)
+
+def sample_var(l):
+    n=len(l)
+    if n==1:
+        return -1
+    return (sum(x**2 for x in l) / (n - 1)) - (n / (n - 1)) * mean(l)**2
+
+def count_multiple(l, value_list):
+    return sum(l.count(value) for value in value_list)
 
 def count_less_than(l,x):
     return sum([1 for i in l if i<=x])
@@ -524,7 +502,6 @@ class Parameter:
         return self.label + " = "
 
     def validate(self, value, ):
-        print("hello")
         try:
             v = float(value)
             return self.minimum <= v <= self.maximum
@@ -544,81 +521,200 @@ class Die:
         self.num = random.randint(1, 6)
         return self.num
 
-    def get_die(self):
-        return dice_art[self.num]
 
 class AbstractDicetribution:
-    def __init__(self):
+    def __init__(self,parameters=None,on_change=None):
         self.dice_data = []
+        self.parameters = parameters
+        self.set_n_dice_row(self.parameters["num"].value)
 
     def get_dice_row(self):
         raise NotImplementedError
 
-    def add_dice_data(self, n=1):
-        for i in range(n):
+    def get_row_data(self,row):
+        raise NotImplementedError
+
+    def add_dice_row(self, n=1):
+        for i in range(int(n)):
             self.dice_data.append(self.get_dice_row())
+        if n<0:
+            self.remove_dice_row(n=-n)
 
-    def set_n_dice_data(self, n):
+    def remove_dice_row(self, n=1):
+        for i in range(int(n)):
+            self.dice_data.pop()
+
+    def set_n_dice_row(self, n):
         self.dice_data=[]
-        self.add_dice_data(n)
+        self.add_dice_row(n)
 
-    def get_dice_rows(self):
-        return [[die.num for die in row] for row in self.dice_data]
+    def get_n_dice_row(self):
+        return len(self.dice_data)
 
-    def show_dice_rows(self):
-        output=[]
-        for row in self.dice_data:
-            output.append("\n".join([" ".join([item[i] for item in [die.get_die() for die in row]]) for i in range(5)]))
-        return output
+    def get_dice_data(self):
+        return [([die.num for die in row],self.get_row_data(row)) for row in self.dice_data]
 
-    def get_graph(self):
+    def get_plot_data(self,show_real):
+        raise NotImplementedError
+
+    def EandVar(self,showreal):
         raise NotImplementedError
 
 class GeoDice(AbstractDicetribution):
+    def __init__(self,parameters=None):
+        self._success_vals = [6]
+        super().__init__(parameters)
+
+    @property
+    def success_vals(self):
+        return self._success_vals
+
+    @success_vals.setter
+    def success_vals(self, lst):
+        self._success_vals = lst
+        self.set_n_dice_row(self.get_n_dice_row())
+
     def get_dice_row(self):
-        n=6
         dice=[Die()]
-        while dice[-1].num!=6:
+        while dice[-1].num not in self.success_vals:
             dice.append(Die())
         return dice
 
-    def get_graph(self):
-        x_vals=[i for i in range(1,max(len(r) for r in self.dice_data)+1)]
+    def get_plot_data(self, show_real):
+        x_vals=np.array([i for i in range(1,max(len(r) for r in self.dice_data)+1)])
         l_list=[len(r) for r in self.dice_data]
-        y_vals=[l_list.count(i) for i in x_vals]
-        return x_vals, y_vals
+        y_vals=[l_list.count(i)/self.parameters["num"].value for i in x_vals]
+        if not show_real:
+            return x_vals, y_vals
+        p=len(self.success_vals)/6
+        def pdf(x,p):
+            return (1 - p) ** (x - 1) * p
+        return x_vals, y_vals,x_vals,pdf(x_vals,p),"bar"
+
+    def get_row_data(self,row):
+        return len(row)
+
+    def EandVar(self,show_real):
+        x_vals,y_vals=self.get_plot_data(False)
+        E=mean([self.get_row_data(r) for r in self.dice_data])
+        Var=sample_var([self.get_row_data(r) for r in self.dice_data])
+        if not show_real:
+            return E,Var
+        p = len(self.success_vals) / 6
+        return E,Var,1/p, (1-p)/(p**2)
 
 class BinDice(AbstractDicetribution):
-    def __init__(self,n):
-        super().__init__()
-        self.n = n
+    def __init__(self,parameters=None,on_change=None):
+        self.on_change = on_change
+        self.success_vals = [6]
+        self._cached_n = int(parameters["n"].value)
+        super().__init__(parameters)
+
+    def _check_n_changed(self):
+        current_n = int(self.parameters["n"].value)
+        if self._cached_n != current_n:
+            diff = current_n - self._cached_n
+            self._cached_n = current_n
+            for row in self.dice_data:
+                if diff > 0:
+                    for _ in range(diff):
+                        row.append(Die())
+                else:
+                    for _ in range(-diff):
+                        if len(row) > 0:
+                            row.pop()
+            self.on_change()
 
     def get_dice_row(self):
-        return [Die() for _ in range(self.n)]
+        self._check_n_changed()
+        return [Die() for _ in range(int(self.parameters["n"].value))]
 
-    def get_graph(self):
-        x_vals=[i for i in range(self.n)]
-        c_list=[r.count(6) for r in self.dice_data]
-        y_vals=[c.count(x_vals) for c in c_list]
-        return x_vals, y_vals
+    def get_plot_data(self,show_real):
+        self._check_n_changed()
+        x_vals=[i for i in range(int(self.parameters["n"].value))]
+        c_list=[count_multiple([die.num for die in r],self.success_vals) for r in self.dice_data]
+        y_vals=[c_list.count(x) for x in x_vals]
+        if not show_real:
+            return x_vals, y_vals
+        p=len(self.success_vals)/6
+        def pdf(x,p):
+            n=int(self.parameters["n"].value)
+            return comb(n, x) * (p ** x) * ((1 - p) ** (n - x))
+        return x_vals, y_vals,x_vals,pdf(x_vals,p),"bar"
+
+    def get_row_data(self,row):
+        self._check_n_changed()
+        return count_multiple([die.num for die in row],self.success_vals)
+
+    def EandVar(self,show_real):
+        self._check_n_changed()
+        x_vals,y_vals=self.get_plot_data(False)
+        E=mean([self.get_row_data(r) for r in self.dice_data])
+        Var=sample_var([self.get_row_data(r) for r in self.dice_data])
+        if not show_real:
+            return E,Var
+        p = len(self.success_vals) / 6
+        n=self.parameters["n"].value
+        return E,Var,n*p, (1-p)*n*p
 
 class NormDice(AbstractDicetribution):
-    def __init__(self,n):
-        super().__init__()
-        self.n = n
+    def __init__(self,parameters=None,on_change=None):
+        self.on_change = on_change
+        self.success_vals = [6]
+        self._cached_n = int(parameters["n"].value)
+        super().__init__(parameters)
+
+    def _check_n_changed(self):
+        current_n = int(self.parameters["n"].value)
+        if self._cached_n != current_n:
+            diff = current_n - self._cached_n
+            self._cached_n = current_n
+            for row in self.dice_data:
+                if diff > 0:
+                    for _ in range(diff):
+                        row.append(Die())
+                else:
+                    for _ in range(-diff):
+                        if len(row) > 0:
+                            row.pop()
+            self.on_change()
 
     def get_dice_row(self):
-        return [Die() for _ in range(self.n)]
+        self._check_n_changed()
+        return [Die() for _ in range(int(self.parameters["n"].value))]
 
-    def get_graph(self):
-        x_vals=np.linspace(1,6,161)
+    def get_plot_data(self,show_real):
+        self._check_n_changed()
+        x_vals=np.linspace(1,6,41)
         a_list=[mean([dice.num for dice in row]) for row in self.dice_data]
         y_vals=[]
         width = (x_vals[1] - x_vals[0]) / 2
         for x in x_vals:
             upperbound=x+width
             y_vals.append(count_less_than(a_list,upperbound) - sum(y_vals))
-        return x_vals, y_vals
+        if not show_real:
+            return x_vals, y_vals
+
+        mu=3.5
+        sigma=np.sqrt(35/12) /np.sqrt(self.parameters["n"].value)
+
+        def pdf(x):
+            return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+        return x_vals, np.array(y_vals)/sum(y_vals),x_vals,pdf(x_vals)*width*2,"line"
+
+
+    def get_row_data(self,row):
+        self._check_n_changed()
+        return mean([die.num for die in row])
+
+    def EandVar(self,show_real):
+        self._check_n_changed()
+        x_vals,y_vals=self.get_plot_data(False)
+        E=mean([self.get_row_data(r) for r in self.dice_data])
+        Var=sample_var([self.get_row_data(r) for r in self.dice_data])
+        if not show_real:
+            return E,Var
+        return E,Var,3.5, 35**2/144/self.parameters["n"].value
 
 
 
@@ -626,23 +722,3 @@ class NormDice(AbstractDicetribution):
 
 
 
-
-
-if __name__ == '__main__':
-
-    n=NormDice(100)
-    n.add_dice_data(10000)
-    print(n.get_dice_rows())
-    print(n.get_graph())
-
-    quit()
-    g=GeoDice()
-    g.add_dice_data(1000)
-    print("\n".join(g.show_dice_rows()))
-    print(g.get_dice_rows())
-    print(g.get_graph())
-    quit()
-    b=BinDice(10)
-    b.add_dice_data(100)
-    print("\n".join(b.show_dice_rows()))
-    print(b.get_dice_rows())

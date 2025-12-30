@@ -1,9 +1,13 @@
 import tkinter as tk
 
+from sympy.stats.drv_types import GeometricDistribution
+
 from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
 from project.LabelSpinbox import TwoLabels
-from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric
-from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph
+from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice, \
+    NormDice, BinDice
+from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph, DicetributionGraph, \
+    DicetributionSettingsFrame, DiceCanvas
 
 
 class MegaController:
@@ -16,11 +20,11 @@ class MegaController:
 
         self.shadedict={"shadeinclmin":None,"shadeinclmax":None}
 
-        self.graph = tk.Label(bg="black")
+        self.graph = tk.Frame(bg="black")
         self.cb = ComboboxFrame(self.root, ["Normal","Binomial","Exponential","Poisson","Geometric","Piecewise"],self.set_distribution)
-        self.settings=tk.Label(bg="lightgray")
-        self.eandvar=tk.Label(bg="dimgrey")
-        self.calc=tk.Label(bg="darkgrey")
+        self.settings=tk.Frame(bg="lightgray")
+        self.eandvar=tk.Frame(bg="dimgrey")
+        self.calc=tk.Frame(bg="darkgrey")
 
         self.place_widgets()
 
@@ -84,7 +88,6 @@ class MegaController:
         self.refresh()
         self.calc.e1_updating()
 
-
     def refresh(self,piecewise_type="Cubic Splines"):
         self.eandvar=TwoLabels(self.root,["E(X)","Var(X)"],[self.model.expectation(), self.model.variance()])
         if isinstance(self.model,Piecewise):
@@ -131,10 +134,77 @@ class MegaController:
         self.root.grid_rowconfigure(2, weight=1)
         self.root.grid_rowconfigure(3, weight=2)
 
+class DiceController:
+    def __init__(self, root):
+        self.root = root
+
+        self.model=None
+
+        self.graph = tk.Frame(bg="black")
+        self.cb = ComboboxFrame(self.root, ["'Normal'","Binomial","Geometric"],self.set_distribution)
+        self.settings=tk.Frame(bg="lightgray")
+        self.eandvar=tk.Frame(bg="dimgrey")
+        self.dice=tk.Frame(bg="darkgrey")
+
+        #self.success_vals=[6]
+        self.show_real=False
+
+        self.grid_config()
+        self.place_widgets()
+
+    def grid_config(self):
+        self.root.grid_columnconfigure(0, weight=4)
+        self.root.grid_columnconfigure(1, weight=1)
+
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(1, weight=2)
+        self.root.grid_rowconfigure(2, weight=6)
+        self.root.grid_rowconfigure(3, weight=1)
+
+    def place_widgets(self):
+        self.graph.grid(row=0, column=0, rowspan=4, sticky="nsew", padx=(10,5), pady=10)
+        self.cb.grid(row=0, column=1, sticky="nsew", padx=(5,10),pady=(10,5))
+        self.settings.grid(row=1, column=1, sticky="nsew", padx=(5,10),pady=5)
+        self.eandvar.grid(row=3,column=1, sticky="nsew", padx=(5,10),pady=5)
+        self.dice.grid(row=2, column=1, sticky="nsew", padx=(5,10),pady=(5,10))
 
 
+    def set_distribution(self,dist_type):
+        match dist_type:
+            case "Geometric":
+                params={"num":Parameter("num trials",1,99999,1,1),}
+                self.cb.setdefinition(r"$X \sim \text{Geo}(p)$")
+                self.model=GeoDice(params)
 
+            case "'Normal'":
+                params={"n":Parameter("n",25,999,1,10),
+                        "num":Parameter("num trials",1,99999,1,1),}
+                self.cb.setdefinition(r"$\overline{X} \sim N\left(\mu, \frac{\sigma^2}{n}\right)$")
+                self.model=NormDice(params,self.refresh)
+            case "Binomial":
+                self.cb.setdefinition(r"$X \sim B(n, p)$")
+                params={"n":Parameter("n",1,999,1,10),
+                        "num":Parameter("num trials",1,99999,1,1),}
+                self.model= BinDice(params, self.refresh)
 
+        self.settings = DicetributionSettingsFrame(self.root, params, self.refresh)
+        self.graph = DicetributionGraph(self.root)
+        self.refresh()
+
+    def refresh(self,success_vals=None,show_real=None):
+        if success_vals is not None:
+            self.model.success_vals = success_vals
+
+        if show_real is not None:
+            self.show_real = show_real
+
+        self.eandvar=TwoLabels(self.root,["E(X)","Var(X)"]+["real E(X)","real Var(X)"]*self.show_real,self.model.EandVar(self.show_real))
+
+        self.model.add_dice_row(n=self.model.parameters["num"].value-self.model.get_n_dice_row())
+        data=self.model.get_plot_data(self.show_real)
+        self.graph.update_plot(*data)
+        self.dice=DiceCanvas(self.root,self.model.get_dice_data())
+        self.place_widgets()
 
 
 if __name__ == '__main__':
@@ -143,6 +213,6 @@ if __name__ == '__main__':
     root.geometry("900x600")
 
     # 2. Create the Controller, which creates and manages the View
-    controller = MegaController(root)
+    controller = DiceController(root)
 
     root.mainloop()

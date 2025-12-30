@@ -1,15 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
+
 
 import mplcursors
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+from scipy.ndimage import label
 
 from project.Piecewise import Normal, Piecewise
 from project.DraggablePoint import DraggablePoint
 from project.LaTeXformulaimage import latex_to_tk_image
-from project.LabelSpinbox import LabelSpinbox, PairRadioButton
+from project.LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
 
 
 class PiecewiseGraph(tk.Frame):
@@ -135,6 +138,58 @@ class DistributionGraph(tk.Frame):
 
         self.canvas.draw()
 
+class DicetributionGraph(tk.Frame):
+    def __init__(self, master, showcursors=True):
+        super().__init__(master)
+        self.showcursors = showcursors
+        self.grid_propagate(False)
+
+        self.fig = Figure(dpi=100)
+        self.ax = self.fig.add_subplot()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def update_plot(self, x_vals, y_vals, r_x_vals=None, r_y_vals=None, r_graph_type=None):
+        self.ax.clear()
+
+        if r_x_vals is not None and r_graph_type == 'bar':
+            bar_width = 0.35
+            x_pos = range(len(x_vals))
+
+            self.ax.bar([x - bar_width / 2 for x in x_pos], y_vals,width=bar_width, label='Simulated')
+            self.ax.bar([x + bar_width / 2 for x in x_pos], r_y_vals,width=bar_width, color='orange', label='Real')
+
+            self.ax.set_xticks(x_pos)
+            self.ax.set_xticklabels(x_vals)
+            self.ax.legend()
+        else:
+            bar=self.ax.bar(x_vals, y_vals)
+
+            if r_x_vals is not None and r_graph_type == 'line':
+                bar.set_label("Simulated")
+                self.ax.plot(r_x_vals, r_y_vals, color='orange', label='Real')
+                self.ax.set_ylim(bottom=0)
+                self.ax.set_xlim(right=0, left=6)
+
+        self.canvas.draw()
+
+class DicetributionSettingsFrame(tk.Frame):
+    def __init__(self, master,parameters,on_change,success_vals_required=True):
+        super().__init__(master)
+        self.grid_propagate(False)
+
+        self.on_change = on_change
+
+        if success_vals_required:
+            DiceChoices(self,on_change).pack()
+
+        DistributionSettingsFrame(self,parameters,on_change).pack()
+        self.var=tk.BooleanVar(value=False)
+        self.check=ttk.Checkbutton(self,variable=self.var,command=self.on_button_change,text="Show real")
+        self.check.pack()
+
+    def on_button_change(self):
+        self.on_change(show_real=self.var.get())
 
 class DistributionSettingsFrame(tk.Frame):
     def __init__(self, master,parameters,on_change):
@@ -306,9 +361,8 @@ class ComboboxFrame(tk.Frame):
         self.place_widgets()
 
     def place_widgets(self):
-        self.cb.grid(row=0, column=0, pady=5,)
-        self.definition.grid(row=1, column=0, pady=5,)
-        self.grid_columnconfigure(0, weight=1)
+        self.cb.pack(side="top",pady=5)
+        self.definition.pack(side='top', pady=5,)
 
     def callback(self, *args):
         self.on_change(self.cb.get())
@@ -324,7 +378,89 @@ class ComboboxFrame(tk.Frame):
         self.definition.config(image=self.latex_image)
         self.place_widgets()
 
+
+dice_dict={}
+size=(50,50)
+def get_dice_image(number):
+    if number not in dice_dict:
+        image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        dice_dict[number] = ImageTk.PhotoImage(image)
+    return dice_dict[number]
+
+
+class DiceRow(tk.Frame):
+    def __init__(self, master, dice_vals,row_val=None):
+        super().__init__(master)
+        self.dice_vals=dice_vals
+        self.row_val=row_val
+        self.master=master
+        self.create_row()
+
+    def create_row(self):
+        for dice_val in self.dice_vals:
+            tk.Label(self, image=get_dice_image(dice_val)).pack(side="left")
+
+        if self.row_val is not None:
+            separator = tk.Frame(self, width=2, bg="black")
+            separator.pack(side="left", fill="y", padx=5)
+            value_label = tk.Label(self, text=str(self.row_val), font=("Arial", 14))
+            value_label.pack(side="left", padx=5)
+
+
+class DiceCanvas(tk.Frame):
+    def __init__(self, container_frame, dice_vals_rows):
+        super().__init__(container_frame)
+        self.grid_propagate(False)
+
+        self.dice_vals_rows=dice_vals_rows
+        self.canvas=tk.Canvas(self)
+        self.yscrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.xscrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        self.scrollable_frame.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        self.canvas.configure(yscrollcommand=self.yscrollbar.set,xscrollcommand=self.xscrollbar.set)
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.yscrollbar.grid(row=0, column=1, sticky="ns")
+        self.xscrollbar.grid(row=1, column=0, sticky="ew")
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+
+        maxi=min(100,len(self.dice_vals_rows))
+        if maxi<len(self.dice_vals_rows):
+            tk.Label(self.scrollable_frame,text="only 100 are rendered due to processing power",font=("Arial", 10),fg="red").pack(side="top", anchor="nw")
+        for dice_vals_row in self.dice_vals_rows[:maxi]:
+            vals=dice_vals_row[0]
+            num=dice_vals_row[1]
+            DiceRow(self.scrollable_frame, vals,num).pack(side="top", anchor="nw")
+
+
+
+# root.geometry("200x200")
+#
+# dice_data=(([1, 2, 3, 4, 5], 15),
+#             ([5, 4, 3, 2, 1], 15),
+#             ([6, 6, 6, 6, 6], 30),
+#            ([1, 2, 3, 4, 5], 15),
+#            ([5, 4, 3, 2, 1], 15),
+#            ([6, 6, 6, 6, 6], 30)
+#            )
+#
+# DiceCanvas(root,dice_data).pack(side="top",fill="both", expand=True)
+# root.mainloop()
+
+
 if __name__ == '__main__':
+    quit()
     from project.Piecewise import Normal, Parameter,Binomial
     n=Parameter("n",1,999,1,10)
     p=Parameter("p",0,1,0.05,0.5)
