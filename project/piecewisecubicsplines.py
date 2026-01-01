@@ -1,11 +1,21 @@
-import matplotlib.pyplot as plt
-
 import numpy as np
 
-def piecewise_cubic_spline(points):
+def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.float64]])->list[np.ndarray]:
+    """
+    Compute the coefficients of piecewise cubic splines to connect given points.
+    Parameters
+    ----------
+    points : list of tuple of float
+        list of 2D points (x,y) to be interpolated.
 
+    Returns
+    -------
+    list of np.ndarray
+        A list of arrays representing cubic splines for each interval.
+        Each array has the form [x1,x2,a,b,c,d].
+        This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
+    """
     points = sorted(points, key=lambda p: p[0])
-    #print(points)
     n=len(points)-1
 
     matrix=np.zeros((4*n,4*n))
@@ -50,28 +60,67 @@ def piecewise_cubic_spline(points):
     matrix[-1][-4]=6*points[-1][0]
     matrix[-1][-3]=2
 
-    coefficientmatrix=np.linalg.solve(matrix,matb)
-    pieces=[np.array([points[i][0],points[i+1][0],coefficientmatrix[4*i][0],coefficientmatrix[4*i+1][0],coefficientmatrix[4*i+2][0],coefficientmatrix[4*i+3][0]])
+    coefficient_matrix=np.linalg.solve(matrix,matb)
+    pieces=[np.array([points[i][0],points[i+1][0],coefficient_matrix[4*i][0],coefficient_matrix[4*i+1][0],coefficient_matrix[4*i+2][0],coefficient_matrix[4*i+3][0]])
             for i in range(n)]
-    pieces=dealwithnegatives(pieces)
+    pieces=deal_with_negatives(pieces)
     return pieces
 
-def piecewise_linear(points):
+def piecewise_linear(points: list[tuple[float, float]]) -> list[np.ndarray]:
+    """
+    Computes the coefficients of piecewise linear splines to connect given points.
+
+    Parameters
+    ----------
+    points : list of tuple of float
+        list of 2D points (x,y) to be interpolated.
+
+    Returns
+    -------
+    list of np.ndarray
+        A list of arrays representing linear interpolation for each interval.
+        Each array has the form [x1,x2,a,b,c,d].
+        This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
+        The coefficient of the high order terms, a and b, are 0
+
+    """
     points = sorted(points, key=lambda p: p[0])
 
     output = []
-    for point, nextpoint in zip(points, points[1:]):
-        if point == nextpoint:
+    for point, next_point in zip(points, points[1:]):
+        if point == next_point:
             continue
         x1, y1 = point
-        x2, y2 = nextpoint
+        x2, y2 = next_point
         c = (y2 - y1) / (x2 - x1)
         d = y1 - c * x1
         output.append(np.array([x1, x2, 0, 0, c,d]))
     return output
 
-def dealwithnegatives(pieces):
-    newpieces=[]
+def deal_with_negatives(pieces:list[np.ndarray]) -> list[np.ndarray]:
+    """
+    Deals with any negative values in the computed splines.
+
+    It checks for roots in each section and if there are roots, it must bo below 0.
+    it then splits the spline at the roots, and sets the bits below 0 to 0
+
+    Parameters
+    ----------
+    pieces : list of np.ndarray
+        A list of arrays representing cubic splines for each interval.
+        Each array has the form [x1,x2,a,b,c,d].
+        This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
+
+    Returns
+    -------
+    list of np.ndarray
+        A list of arrays representing cubic splines for each interval.
+        Each array has the form [x1,x2,a,b,c,d].
+        This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
+        Some terms will have a,b,c and d all equal to 0, as otherwise they would lead to negative y values.
+    """
+
+    new_pieces=[]
     for piece in pieces:
         x1,x2,a,b,c,d=piece
         x=np.linspace(x1,x2,100)
@@ -84,70 +133,9 @@ def dealwithnegatives(pieces):
                 x = (x1 + x2) / 2
                 y = a * x ** 3 + b * x ** 2 + c * x + d
                 if y < 0:
-                    newpieces.append(np.array([x1, x2, 0, 0, 0, 0]))
+                    new_pieces.append(np.array([x1, x2, 0, 0, 0, 0]))
                 else:
-                    newpieces.append(np.array([x1, x2, a, b, c, d]))
+                    new_pieces.append(np.array([x1, x2, a, b, c, d]))
         else:
-            newpieces.append(piece)
-    return newpieces
-
-def integratefullpiecewisecubic(pieces):
-    area=0
-    for piece in pieces:
-        x1,x2,a,b,c,d=piece
-        area+=a*(x2**4-x1**4)/4 + b*(x2**3-x1**3)/3 + c*(x2**2-x1**2)/2+d*(x2-x1)
-    return area
-
-def integratepiecewise(pieces,A=None,B=None):
-    def integrate(A,B,piece):
-        a,b,c,d=piece[2:]
-        return a*(B**4-A**4)/4 + b*(B**3-A**3)/3 + c*(B**2-A**2)/2+d*(B-A)
-    total=0
-    for p,piece in enumerate(pieces):
-        x1,x2,a,b,c,d=piece
-        if A and B:
-            lowerbound=max(A,x1)
-            upperbound=min(B,x2)
-        else:
-            lowerbound=x1
-            upperbound=x2
-        if lowerbound < upperbound:
-            total+=integrate(lowerbound,upperbound,piece)
-    return total
-
-
-def normalisepiecewisecubic(points,pieces):
-    area=integratepiecewise(pieces)
-    k=1/area
-    points=[(point[0],k*point[1]) for point in points]
-    pieces=[np.concatenate((piece[:2],k * piece[2:])) for piece in pieces]
-    return points,pieces
-
-def plotpieces(points,pieces):
-    for point in points:
-        plt.plot(point[0], point[1], 'ro')
-
-    for piece in pieces:
-        lower,upper,a,b,c,d,=piece
-        x=np.linspace(lower,upper,50)
-        #y=np.maximum(a*x**3 + b*x**2 + c*x + d,0)
-        y=a*x**3 + b*x**2 + c*x + d
-
-        plt.plot(x,y)
-    plt.show()
-
-
-if __name__=='__main__':
-    print(integratepiecewise(2.5,3.5,[[2,3,.75,-4.5,7.25,.5],[3,4,-.75,9,-33.25,41]]))
-
-    quit()
-    points=[(1,0), (2, 0.25), (3, 2), (4, 1)]
-
-    #print(piecewise_cubic_spline(points))
-    pieces=piecewise_cubic_spline(points)#+piecewise_linear(points)
-    #pieces=piecewise_linear(points)
-    plotpieces(points,pieces)
-
-    points,pieces=normalisepiecewisecubic(points,pieces)
-    plotpieces(points,pieces)
-    print(integratefullpiecewisecubic(pieces))
+            new_pieces.append(piece)
+    return new_pieces
