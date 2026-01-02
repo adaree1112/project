@@ -1,0 +1,27 @@
+Binomial Distribution
+---------------------
+Number of "successes" in n trials.
+
+X~B(n,p)
+
+Example case:
+    - Number of heads in n coin flips (p = 1/2)
+    - Number of 6s in n dice rolls (p = 1/6)
+
+Assumes:
+    - Fixed number of trials
+    - A trial is either a success or failure
+    - Fixed probability of success
+    - Trials are identical and independent
+
+Parameters:
+    n: The number of trials
+    p: The probability of a success
+
+Expectation and Variance:
+    E(X) = n * p
+    Var(X) = n * p * (1 - p)
+
+Probability Mass Function:
+    P(X = r) = nCr * p^r * (1 - p)^(n - r)
+    where nCk = n! / (r! * (n - r)!) is the number of combinations

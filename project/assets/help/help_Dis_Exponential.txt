@@ -1,0 +1,27 @@
+Exponential Distribution
+------------------------
+Time until next event.
+
+X~Exp(λ)
+
+Example case:
+    - Time until the next train at a station.
+    - Time until the next phone call at a call center.
+
+Assumes:
+    - The events occur with a constant average rate
+    - The events are independent
+
+Parameters:
+    λ : The constant average rate (expected number of events per unit time)
+
+Expectation and Variance:
+    E(X) = 1 / λ
+    Var(X) = 1 / λ^2
+
+Probability Density Function (PDF):
+    f(x) = λ * e^(-λ * x), for x ≥ 0
+
+Cumulative Distribution Function (CDF):
+    F(x) = ∫ f(x) dx
+         = 1 - e^(-λ * x), for x ≥ 0

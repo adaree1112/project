@@ -1,0 +1,34 @@
+Piecewise Distribution
+----------------------
+Probability distribution defined by a set of draggable (x,y) points.
+
+These points can be interpolated by using either cubic splines or linear segments.
+The function can be normalised to represent a probability distribution.
+
+Example case:
+    - Modeling a custom-shaped probability function that is not standard.
+    - Displaying cool graphs.
+
+Points:
+    - Can be dragged to change the (x,y) coordinates.
+    - Double click graph to add additional point.
+
+Add point:
+    - Adds a point at a random location within the current x and y ranges
+    - Normalisation is reset after adding a point
+
+Remove point:
+    - Removes a point at random (if more than two points exist)
+    - Normalisation is reset after removing a point
+
+Normalise:
+    - Scale y-values and interpolation coefficients so that it the total area under the curve is equal to 1
+    - Required for probability queries
+
+(Inverse) Probability Queries:
+    - Only valid if normalised
+
+Expectations and Variance:
+    - E(X) = ∫ x * f(x) dx
+    - Var(X) = E(X²) - E(X)²
+             = ∫ x² * f(x) dx - (∫ x * f(x) dx)^2

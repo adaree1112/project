@@ -4,7 +4,7 @@ import numpy as np
 import math
 from scipy.special import comb
 
-from project.piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
+from piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
 
 
 def integrate_nbic(x1: float, x2: float, a: float, b: float, c: float, d: float, n: int) -> float:
@@ -98,10 +98,11 @@ def sample_var(l:list)->float:
     float
         The sample variance of the list of values.
     """
-    n=len(l)
-    if n==1:
+    try:
+        x_bar=mean(l)
+        return sum((x-x_bar)**2 for x in l)/(len(l)-1)
+    except ZeroDivisionError:
         return -1
-    return (sum(x**2 for x in l) / (n - 1)) - (n / (n - 1)) * mean(l)**2
 
 def count_multiple(l:list, value_list:list)->int:
     """
@@ -1937,11 +1938,11 @@ class GeoDice(AbstractDicetribution):
         l_list=[len(r) for r in self.dice_data]
         y_vals=[l_list.count(i)/self.parameters["num"].value for i in x_vals]
         if not show_real:
-            return x_vals, np.array(y_vals)/sum(y_vals)
+            return x_vals, np.array(y_vals)
         p=len(self.success_vals)/6
         def pdf(x):
             return (1 - p) ** (x - 1) * p
-        return x_vals, np.array(y_vals)/sum(y_vals),x_vals,pdf(x_vals),"bar"
+        return x_vals, np.array(y_vals),x_vals,pdf(x_vals),"bar"
 
     def get_row_data(self,row:list[Die])->int:
         """
@@ -2070,7 +2071,7 @@ class BinDice(AbstractDicetribution):
             contains x values, y values, real x values, real y values and real type
         """
         self._check_n_changed()
-        x_vals=[i for i in range(int(self.parameters["n"].value))]
+        x_vals=[i for i in range(int(self.parameters["n"].value)+1)]
         c_list=[count_multiple([die.num for die in r],self.success_vals) for r in self.dice_data]
         y_vals=[c_list.count(x) for x in x_vals]
         if not show_real:
@@ -2213,16 +2214,30 @@ class NormDice(AbstractDicetribution):
         self._check_n_changed()
         x_vals=np.linspace(1,6,21)
         a_list=[mean([dice.num for dice in row]) for row in self.dice_data]
-        y_vals=[]
-        width = (x_vals[1] - x_vals[0]) / 2
-        for x in x_vals:
-            upperbound=x+width
-            y_vals.append(count_less_than_equal_to(a_list, upperbound) - sum(y_vals))
+
+        y_vals = [0] * len(x_vals)
+        bin_width = x_vals[1] - x_vals[0]
+
+        for value in a_list:
+            if 1 <= value <= 6:
+                index = int((value - 1) / bin_width)
+
+                # Clamp right edge (value == 6)
+                if index == len(x_vals):
+                    index -= 1
+
+                y_vals[index] += 1
+
+        # y_vals=[]
+        # for x in x_vals:
+        #     upperbound=x+width
+        #     y_vals.append(count_less_than_equal_to(a_list, upperbound) - sum(y_vals))
         if not show_real:
             return x_vals, y_vals
 
         mu=3.5
         sigma=np.sqrt(35/12) /np.sqrt(self.parameters["n"].value)
+        width = (x_vals[1] - x_vals[0]) / 2
 
         def pdf(y):
             return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((y - mu) / sigma) ** 2)

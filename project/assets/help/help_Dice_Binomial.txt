@@ -1,0 +1,42 @@
+Binomial Dice Simulation
+------------------------
+Number of "successes" in n trials.
+
+X~B(n,p)
+
+Simulation:
+    - Each dice row represents one experiment
+    - A success occurs when a die shows a selected success value
+    - The probability p is calculated as:
+          p = (number of success values) / 6
+    - The number of successes is binomially distributed
+
+Example case:
+    - Number of 6s in n dice rolls (p = 1/6)
+    - Number of even numbers in n dice rolls (p = 3/6)
+
+Assumes:
+    - Fixed number of trials
+    - A trial is either a success or failure
+    - Fixed probability of success
+    - Trials are identical and independent
+
+Parameters:
+    num: The number of dice rows (simulations)
+    n: The number of trials
+    p: The probability of a success
+
+Simulated Expectation and Variance:
+    E(X) = (∑xᵢ) / num
+    Var(X) = (∑(xᵢ-x̄)²)/ (num - 1)
+
+    Where xᵢ is the number of successes in the row
+    and x̄ is the sample mean
+
+Real Expectation and Variance:
+    E(X) = n * p
+    Var(X) = n * p * (1 - p)
+
+Probability Mass Function:
+    P(X = r) = nCr * p^r * (1 - p)^(n - r)
+    where nCk = n! / (r! * (n - r)!) is the number of combinations

@@ -805,7 +805,7 @@ def get_dice_image(number:int)->tk.PhotoImage:
         The PhotoImage object representing the resized dice image.
     """
     if number not in dice_dict:
-        image = Image.open(f'C:/Users/adam/PycharmProjects/project/project/assets/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        image = Image.open(f'project/assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
         dice_dict[number] = ImageTk.PhotoImage(image)
     return dice_dict[number]
 
@@ -957,11 +957,13 @@ class ModeMenu:
         self.title_dict={"Dis":"Distribution Calculation",
                          "Dice":"Dice Simulation",
                          "Piece":"Piecewise Distribution"}
+
         self.root = root
         self.root.title(self.title_dict[mode])
         self.callback = callback
         self.menubar = tk.Menu(root)
         self.create_mode_menu()
+        self.create_help_menu()
         self.root.configure(menu=self.menubar)
 
     def create_mode_menu(self)->None:
@@ -969,14 +971,56 @@ class ModeMenu:
         Create the mode menu and add required commands to the menubar.
         """
         mode_menu = tk.Menu(self.menubar, tearoff=0)
-        mode_menu.add_command(label="Distribution Calculation", command=lambda: self.internal_call_back("Dis"))
-        mode_menu.add_command(label="Dice Simulation", command=lambda: self.internal_call_back("Dice"))
-        mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.internal_call_back("Piece"))
+        mode_menu.add_command(label="Distribution Calculation", command=lambda: self.mode_callback("Dis"))
+        mode_menu.add_command(label="Dice Simulation", command=lambda: self.mode_callback("Dice"))
+        mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.mode_callback("Piece"))
         mode_menu.add_separator()
-        mode_menu.add_command(label="", command=lambda: self.internal_call_back("WOAH"))
+        mode_menu.add_command(label="", command=lambda: self.mode_callback("WOAH"))
         self.menubar.add_cascade(label="Mode", menu=mode_menu)
 
-    def internal_call_back(self, mode:str)->None:
+    def create_help_menu(self)->None:
+        """
+        Create the help menu and add required commands to the menubar.
+        """
+        help_menu = tk.Menu(self.menubar, tearoff=0)
+
+        distribution_menu=tk.Menu(help_menu, tearoff=0)
+        distribution_menu.add_command(label="Normal", command=lambda: self.help_callback("Dis","Normal"))
+        distribution_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dis","Geometric"))
+        distribution_menu.add_command(label="Binomial", command=lambda: self.help_callback("Dis","Binomial"))
+        distribution_menu.add_command(label="Exponential",command=lambda: self.help_callback("Dis","Exponential"))
+        distribution_menu.add_command(label="Poisson",command=lambda: self.help_callback("Dis","Poisson"))
+        help_menu.add_cascade(label="Distribution Calculation", menu=distribution_menu)
+
+        dice_menu=tk.Menu(help_menu, tearoff=0)
+        dice_menu.add_command(label="'Normal'", command=lambda: self.help_callback("Dice","'Normal'"))
+        dice_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dice","Geometric"))
+        dice_menu.add_command(label="'Binomial'", command=lambda: self.help_callback("Dice","Binomial"))
+        help_menu.add_cascade(label="Dice Simulation", menu=dice_menu)
+
+        piecewise_menu=tk.Menu(help_menu, tearoff=0)
+        piecewise_menu.add_command(label="Piecewise", command=lambda: self.help_callback("Piece","Piecewise"))
+        help_menu.add_cascade(label="Piecewise Distribution", menu=piecewise_menu)
+
+        self.menubar.add_cascade(label="HELP", menu=help_menu)
+
+    def help_callback(self,mode:str,dist_type:str)->None:
+        """
+        Callback function that creates and opens a new help window.
+
+        Parameters
+        ----------
+        mode : str
+            The mode to help with.
+        dist_type : str
+            The distribution type to help with.
+        """
+        help_window = HelpWindow(self.root,f"help_{mode}_{dist_type}")
+        help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
+        help_window.geometry("600x400")
+        help_window.resizable(False,False)
+
+    def mode_callback(self, mode:str)->None:
         """
         Callback function that changes the current mode and updates the window title.
 
@@ -990,5 +1034,96 @@ class ModeMenu:
             self.root.title(self.title_dict[mode])
             self.callback(mode)
 
+class HelpWindow(tk.Toplevel):
+    """
+    A pop-up window that displays scrollable text.
 
+    The text will be help documentation for each mode
+
+    Attributes
+    ----------
+    canvas : tk.Canvas
+        The canvas widget used tp make the frame scrollable.
+    y_scrollbar : tk.Scrollbar
+        The canvas's vertical scrollbar
+    x_scrollbar : tk.Scrollbar
+        The canvas's horizontal scrollbar.
+    scrollable_frame : tkk.Frame
+        A frame inside the canvas that contains DiceRow instances.
+    label : tk.Label
+        The label that displays the provided text.
+    """
+
+    def __init__(self, root:tk.Tk, help_file_name:str)->None:
+        """
+        Initialises a new HelpWindow.
+
+        Parameters
+        ----------
+        root : tk.Tk
+            The parent root window to attach this window to.
+        help_file_name : str
+            The file name of the text to be displayed.
+        """
+        super().__init__(root)
+        self.grid_propagate(False)
+
+        self.canvas=tk.Canvas(self)
+        self.y_scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.x_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        self.help_file_name=help_file_name
+        self.label = tk.Label(self.scrollable_frame, text=self.get_help_text(),font=("Courier", 10), justify="left", anchor="nw")
+
+        self.scrollable_frame.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        self.canvas.configure(yscrollcommand=self.y_scrollbar.set, xscrollcommand=self.x_scrollbar.set)
+
+        self.place_widgets()
+
+    def place_widgets(self)->None:
+        """
+        Places the canvas, scrollbars, and text within the new window using a grid layout.
+        """
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.y_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.x_scrollbar.grid(row=1, column=0, sticky="ew")
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        self.label.pack(side="top", anchor="nw",fill="both", expand=True)
+
+    def get_help_text(self)->str:
+        """
+        Gets the help text for the desired help window.
+
+        Returns
+        -------
+        str
+            the help text for the desired help window.
+        """
+        with open(f"project/assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
+            return file.read()
+
+if __name__ == "__main__":
+    the_root = tk.Tk()
+    the_root.geometry("900x600")
+
+    text="""
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        """
+
+    the_help_window = HelpWindow(the_root, text)
+    the_help_window.title("Help for, ")
+    the_help_window.geometry("600x400")
+    the_help_window.resizable(True, False)
+
+    the_root.mainloop()
 

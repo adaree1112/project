@@ -1,0 +1,24 @@
+Geometric Distribution
+----------------------
+Number of trials until the 1st "success".
+
+X~Geo(p)
+
+Example case:
+    - Number of coin flips until a head (p = 1/2)
+    - Number of dice rolls until a 6 (p = 1/6)
+
+Assumes:
+    - A trial is either a success or failure
+    - Fixed probability of success
+    - Trials are identical and independent
+
+Parameters:
+    p: The probability of a success
+
+Expectation and Variance:
+    E(X) = 1 / p
+    Var(X) = (1 - p) / (p^2)
+
+Probability Mass Function:
+    P(X = r) = (1 - p)^(r - 1) * p

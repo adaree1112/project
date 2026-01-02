@@ -1,0 +1,40 @@
+Normal Dice Distribution
+-------------------
+A common, naturally occurring distribution.
+Central Limit Theorem (CLT) states that the mean value of multiple random variables is approximately normally distributed
+
+X̄~N(μ,σ²/n)
+
+Simulation:
+    - Each dice row represents one experiment
+    - Each row contains n dice
+    - The average value of each row is approximately normally distributed
+
+Example case:
+    - Average value of 30 dice rolls.
+    - Average value of 50 dice rolls.
+
+Assumes:
+    - Large number of dice rolls (>25)
+    - Dice rolls are independent and identically distributed
+    - The distribution is symmetric around the mean
+
+
+Parameters:
+    num: The number of dice rows (simulations)
+    n: The number of dice per row.
+
+Simulated Expectation and Variance:
+    E(X) = (∑xᵢ) / num
+    Var(X) = (∑(xᵢ-x̄)²)/ (num - 1)
+
+    Where xᵢ is the mean value of a row of dice
+    and x̄ is the sample mean of mean values
+
+Real Expectation and Variance:
+    E(X) = μ = 3.5
+    Var(X) = σ² / n 35 / (12 * n)
+
+Probability Density Function (PDF):
+    f(x) = (1 / (σ * sqrt(2 * π))) * (e^(-0.5 * ((x-μ) / σ)^2))
+    Where sqrt(2 * π) is the square root of 2 * π

@@ -1,0 +1,25 @@
+Normal Distribution
+-------------------
+A common, naturally occurring distribution.
+
+X~N(μ,σ²)
+
+Example case:
+    - Heights in the population.
+    - Weight of newborn babies.
+
+Assumes:
+    - Data is continuous
+    - Distribution is symmetric around the mean
+
+Parameters:
+    μ - Population mean
+    σ² - Population variance
+
+Expectation and Variance:
+    E(X) = μ
+    Var(X) = σ²
+
+Probability Density Function (PDF):
+    f(x) = (1 / (σ * sqrt(2 * π))) * (e^(-0.5 * ((x-μ) / σ)^2))
+    Where sqrt(2 * π) is the square root of 2 * π

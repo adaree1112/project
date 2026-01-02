@@ -1,0 +1,23 @@
+Poisson Distribution
+--------------------
+Number of events in a fixed time frame.
+
+X~Poi(λ)
+
+Example case:
+    - Number of trains entering a station in an hour.
+    - NUmber of phone calls received by a call centre in a day.
+
+Assumes:
+    - The events occur with a constant average rate
+    - The events are independent
+
+Parameters:
+    λ : The constant average rate (expected number of events)
+
+Expectation and Variance:
+    E(X) = λ
+    Var(X) = λ
+
+Probability Mass Function:
+    P(X = r) = (λ^r * e^(-λ )) / r!

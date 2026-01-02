@@ -515,6 +515,5 @@ if __name__ == '__main__':
 
     the_controller = MEGAController(None,"Dis")
     the_view = View(the_root, the_controller)
-
     the_view.pack(fill="both", expand=True)
     the_root.mainloop()
