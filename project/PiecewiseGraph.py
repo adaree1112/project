@@ -12,6 +12,7 @@ from Piecewise import Piecewise, AbstractStatisticalModel, Normal
 from DraggablePoint import DraggablePoint
 from LaTeXformulaimage import latex_to_tk_image
 from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
+from t import GameView,GameController
 
 
 class PiecewiseGraph(tk.Frame):
@@ -805,7 +806,7 @@ def get_dice_image(number:int)->tk.PhotoImage:
         The PhotoImage object representing the resized dice image.
     """
     if number not in dice_dict:
-        image = Image.open(f'project/assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
         dice_dict[number] = ImageTk.PhotoImage(image)
     return dice_dict[number]
 
@@ -975,7 +976,7 @@ class ModeMenu:
         mode_menu.add_command(label="Dice Simulation", command=lambda: self.mode_callback("Dice"))
         mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.mode_callback("Piece"))
         mode_menu.add_separator()
-        mode_menu.add_command(label="", command=lambda: self.mode_callback("WOAH"))
+        mode_menu.add_command(label="", command=lambda: self.open_game())
         self.menubar.add_cascade(label="Mode", menu=mode_menu)
 
     def create_help_menu(self)->None:
@@ -1002,7 +1003,11 @@ class ModeMenu:
         piecewise_menu.add_command(label="Piecewise", command=lambda: self.help_callback("Piece","Piecewise"))
         help_menu.add_cascade(label="Piecewise Distribution", menu=piecewise_menu)
 
-        self.menubar.add_cascade(label="HELP", menu=help_menu)
+        help_menu.add_separator()
+
+        help_menu.add_command(label="",command=lambda: print("help for game"))
+
+        self.menubar.add_cascade(label="Help", menu=help_menu)
 
     def help_callback(self,mode:str,dist_type:str)->None:
         """
@@ -1019,6 +1024,18 @@ class ModeMenu:
         help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
         help_window.geometry("600x400")
         help_window.resizable(False,False)
+
+    def open_game(self)->None:
+        """
+        Callback function that creates and opens a new game window.
+        """
+        game_window = tk.Toplevel(self.root)
+        the_view = GameView(game_window)
+        controller = GameController(the_view)
+        the_view.pack(expand=True, fill='both')
+        game_window.resizable(False, False)
+        game_window.geometry("600x400")
+        game_window.title("Calculation Game")
 
     def mode_callback(self, mode:str)->None:
         """
@@ -1106,7 +1123,7 @@ class HelpWindow(tk.Toplevel):
         str
             the help text for the desired help window.
         """
-        with open(f"project/assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
+        with open(f"assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
             return file.read()
 
 if __name__ == "__main__":
@@ -1120,7 +1137,7 @@ if __name__ == "__main__":
         Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         """
 
-    the_help_window = HelpWindow(the_root, text)
+    the_help_window = HelpWindow(the_root, "help_Dis_Normal")
     the_help_window.title("Help for, ")
     the_help_window.geometry("600x400")
     the_help_window.resizable(True, False)

@@ -2022,6 +2022,7 @@ class BinDice(AbstractDicetribution):
         self._cached_n = int(parameters["n"].value)
         super().__init__(parameters)
 
+    # noinspection DuplicatedCode
     def _check_n_changed(self)->None:
         """
         Check whether n has changed when functions are called.
@@ -2161,6 +2162,7 @@ class NormDice(AbstractDicetribution):
         self._cached_n = int(parameters["n"].value)
         super().__init__(parameters)
 
+    # noinspection DuplicatedCode
     def _check_n_changed(self)->None:
         """
         Check whether n has changed when functions are called.
