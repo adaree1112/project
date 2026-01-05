@@ -12,7 +12,7 @@ from Piecewise import Piecewise, AbstractStatisticalModel, Normal
 from DraggablePoint import DraggablePoint
 from LaTeXformulaimage import latex_to_tk_image
 from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
-from t import GameView,GameController
+from the_game import GameView,GameController
 
 
 class PiecewiseGraph(tk.Frame):
@@ -806,7 +806,7 @@ def get_dice_image(number:int)->tk.PhotoImage:
         The PhotoImage object representing the resized dice image.
     """
     if number not in dice_dict:
-        image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        image = Image.open(f'project/assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
         dice_dict[number] = ImageTk.PhotoImage(image)
     return dice_dict[number]
 
@@ -1005,7 +1005,7 @@ class ModeMenu:
 
         help_menu.add_separator()
 
-        help_menu.add_command(label="",command=lambda: print("help for game"))
+        help_menu.add_command(label="",command=lambda: self.help_callback("N","A"))
 
         self.menubar.add_cascade(label="Help", menu=help_menu)
 
@@ -1021,7 +1021,10 @@ class ModeMenu:
             The distribution type to help with.
         """
         help_window = HelpWindow(self.root,f"help_{mode}_{dist_type}")
-        help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
+        if mode!="N":
+            help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
+        else:
+            help_window.title("THE GAME")
         help_window.geometry("600x400")
         help_window.resizable(False,False)
 
@@ -1123,7 +1126,7 @@ class HelpWindow(tk.Toplevel):
         str
             the help text for the desired help window.
         """
-        with open(f"assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
+        with open(f"project/assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
             return file.read()
 
 if __name__ == "__main__":

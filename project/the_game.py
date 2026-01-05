@@ -2,8 +2,8 @@ import tkinter as tk
 from random import randint
 import re
 
-from project.Piecewise import Parameter
-from project.LabelSpinbox import LabelSpinbox
+from Piecewise import Parameter
+from LabelSpinbox import LabelSpinbox
 
 
 class GameModel:
