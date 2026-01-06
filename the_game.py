@@ -128,78 +128,6 @@ class GameController:
         self.start_phase()
         self.view.after(2000,lambda:self.view.show_message("")) # type: ignore
 
-class EntryFrame(tk.Frame):
-    def __init__(self,master,callback):
-        super().__init__(master)
-        self.grid_propagate(False)
-
-        self.additional_parameter=None
-        self.entry_var = tk.StringVar()
-        self.entry = tk.Entry(self,textvariable=self.entry_var,width=10)
-        self.button = tk.Button(self,text="Submit",command=lambda:callback(int(self.entry_var.get()),self.additional_parameter) if re.match(r"^-?\d+$", self.entry_var.get()) else None,width=10)
-        self.entry.bind("<Return>",lambda event:callback(int(self.entry_var.get()),self.additional_parameter) if re.match(r"^-?\d+$", self.entry_var.get()) else None)
-
-
-        self.entry.grid(row=0,column=0,sticky="e")
-        self.button.grid(row=0,column=1,sticky="w")
-
-    def enable(self):
-        self.button.config(state=tk.NORMAL)
-        self.entry.config(state=tk.NORMAL)
-
-    def disable(self):
-        self.button.config(state=tk.DISABLED)
-        self.entry.config(state=tk.DISABLED)
-        self.entry_var.set("")
-
-class ButtonsFrame(tk.Frame):
-    def __init__(self,master,button_dict):
-        super().__init__(master)
-        self.grid_propagate(False)
-
-        self.buttons=[]
-        for i,(text,func) in enumerate(button_dict.items()):
-            self.buttons.append(x:=tk.Button(self,text=text,command=func))
-            x.grid(column=i,row=0)
-
-    def enable_all_buttons(self):
-        for button in self.buttons:
-            button.config(state=tk.NORMAL)
-
-    def disable_all_buttons(self):
-        for button in self.buttons:
-            button.config(state=tk.DISABLED)
-
-    def enable_button(self,text):
-        for button in self.buttons:
-            if button['text'] == text:
-                button.config(state=tk.NORMAL)
-
-    def disable_button(self,text):
-        for button in self.buttons:
-            if button['text'] == text:
-                button.config(state=tk.DISABLED)
-
-class GameSettingsFrame(tk.Frame):
-    def __init__(self, master,parameters,on_change):
-        super().__init__(master)
-        self.grid_propagate(False)
-
-        self.on_change = on_change
-        self.label_spinboxes = []
-
-        for param in parameters.values():
-            self.label_spinboxes.append(x:=LabelSpinbox(self,param,self.on_change))
-            x.pack()
-
-    def enable_all_spinboxes(self):
-        for label_spinbox in self.label_spinboxes:
-            label_spinbox.spin_box.config(state=tk.NORMAL)
-
-    def disable_all_spinboxes(self):
-        for label_spinbox in self.label_spinboxes:
-            label_spinbox.spin_box.config(state=tk.DISABLED)
-
 class GameView(tk.Frame):
     def __init__(self,master):
         super().__init__(master)
@@ -282,6 +210,81 @@ class GameView(tk.Frame):
 
     def show_message(self,text):
         self.num_screen.config(text=text,font=("Arial",15))
+
+class EntryFrame(tk.Frame):
+    def __init__(self,master,callback):
+        super().__init__(master)
+        self.grid_propagate(False)
+
+        self.additional_parameter=None
+        self.entry_var = tk.StringVar()
+        self.entry = tk.Entry(self,textvariable=self.entry_var,width=10)
+        self.button = tk.Button(self,text="Submit",command=lambda:callback(int(self.entry_var.get()),self.additional_parameter) if re.match(r"^-?\d+$", self.entry_var.get()) else None,width=10)
+        self.entry.bind("<Return>",lambda event:callback(int(self.entry_var.get()),self.additional_parameter) if re.match(r"^-?\d+$", self.entry_var.get()) else None)
+
+
+        self.entry.grid(row=0,column=0,sticky="e")
+        self.button.grid(row=0,column=1,sticky="w")
+
+    def enable(self):
+        self.button.config(state=tk.NORMAL)
+        self.entry.config(state=tk.NORMAL)
+
+    def disable(self):
+        self.button.config(state=tk.DISABLED)
+        self.entry.config(state=tk.DISABLED)
+        self.entry_var.set("")
+
+class ButtonsFrame(tk.Frame):
+    def __init__(self,master,button_dict):
+        super().__init__(master)
+        self.grid_propagate(False)
+
+        self.buttons=[]
+        for i,(text,func) in enumerate(button_dict.items()):
+            self.buttons.append(x:=tk.Button(self,text=text,command=func))
+            x.grid(column=i,row=0)
+            self.columnconfigure(i, weight=1)
+
+    def enable_all_buttons(self):
+        for button in self.buttons:
+            button.config(state=tk.NORMAL)
+
+    def disable_all_buttons(self):
+        for button in self.buttons:
+            button.config(state=tk.DISABLED)
+
+    def enable_button(self,text):
+        for button in self.buttons:
+            if button['text'] == text:
+                button.config(state=tk.NORMAL)
+
+    def disable_button(self,text):
+        for button in self.buttons:
+            if button['text'] == text:
+                button.config(state=tk.DISABLED)
+
+class GameSettingsFrame(tk.Frame):
+    def __init__(self, master,parameters,on_change):
+        super().__init__(master)
+        self.grid_propagate(False)
+
+        self.on_change = on_change
+        self.label_spinboxes = []
+
+        for param in parameters.values():
+            self.label_spinboxes.append(x:=LabelSpinbox(self,param,self.on_change))
+            x.pack()
+
+    def enable_all_spinboxes(self):
+        for label_spinbox in self.label_spinboxes:
+            label_spinbox.spin_box.config(state=tk.NORMAL)
+
+    def disable_all_spinboxes(self):
+        for label_spinbox in self.label_spinboxes:
+            label_spinbox.spin_box.config(state=tk.DISABLED)
+
+
 
 
 

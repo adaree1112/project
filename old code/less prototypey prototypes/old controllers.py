@@ -1,10 +1,10 @@
 import tkinter as tk
 
-from project.PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
-from project.LabelSpinbox import TwoLabels
-from project.Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice, \
+from PiecewiseGraph import ComboboxFrame, PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
+from LabelSpinbox import TwoLabels
+from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice, \
     NormDice, BinDice
-from project.PiecewiseGraph import DistributionSettingsFrame, DistributionGraph, DicetributionGraph, \
+from PiecewiseGraph import DistributionSettingsFrame, DistributionGraph, DicetributionGraph, \
     DicetributionSettingsFrame, DiceCanvas, ModeMenu
 
 

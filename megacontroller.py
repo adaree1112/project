@@ -101,21 +101,21 @@ class MEGAController:
             case "Dice":
                 match dist_type:
                     case "Geometric":
-                        params = {"num": Parameter("num trials", 1, 99999, 1, 1), }
+                        params = {"num": Parameter("num trials", 1, 1000, 1, 1), }
                         latex = r"$X \sim \text{Geo}(p)$"
                         self.model = GeoDice(params)
                         settings_args = [params, self.refresh]
                     case "'Normal'":
-                        params = {"n": Parameter("n", 25, 999, 1, 25),
-                                  "num": Parameter("num trials", 1, 99999, 1, 1), }
+                        params = {"n": Parameter("n", 25, 100, 1, 25),
+                                  "num": Parameter("num trials", 1, 1000, 1, 1), }
                         latex = r"$\overline{X} \sim N\left(\mu, \frac{\sigma^2}{n}\right)$"
                         self.model = NormDice(params, self.refresh)
                         settings_args = [params, self.refresh]
                         settings_kwargs = {"success_vals_required": False}
                     case "Binomial":
                         latex = r"$X \sim B(n, p)$"
-                        params = {"n": Parameter("n", 1, 999, 1, 10),
-                                  "num": Parameter("num trials", 1, 99999, 1, 1), }
+                        params = {"n": Parameter("n", 1, 100, 1, 10),
+                                  "num": Parameter("num trials", 1, 1000, 1, 1), }
                         self.model = BinDice(params, self.refresh)
                         settings_args = [params, self.refresh]
             case "Piece":
@@ -516,4 +516,5 @@ if __name__ == '__main__':
     the_controller = MEGAController(None,"Dis")
     the_view = View(the_root, the_controller)
     the_view.pack(fill="both", expand=True)
+    the_root.resizable(False,False)
     the_root.mainloop()

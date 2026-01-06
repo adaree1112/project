@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from cProfile import label
 
 import numpy as np
 from PIL import Image, ImageTk
@@ -13,6 +14,7 @@ from DraggablePoint import DraggablePoint
 from LaTeXformulaimage import latex_to_tk_image
 from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
 from the_game import GameView,GameController
+from tother_game import TOtherGameView, TOtherGameController
 
 
 class PiecewiseGraph(tk.Frame):
@@ -788,7 +790,7 @@ class ComboboxFrame(tk.Frame):
 
 dice_dict={}
 size=(50,50)
-def get_dice_image(number:int)->tk.PhotoImage:
+def get_dice_image(number:int)->Image.Image:
     """
     Returns dice image for the specified number.
 
@@ -802,12 +804,12 @@ def get_dice_image(number:int)->tk.PhotoImage:
 
     Returns
     -------
-    tk.PhotoImage
-        The PhotoImage object representing the resized dice image.
+    Image.Image
+        The Image object representing the resized dice image.
     """
     if number not in dice_dict:
         image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
-        dice_dict[number] = ImageTk.PhotoImage(image)
+        dice_dict[number] = image
     return dice_dict[number]
 
 
@@ -839,6 +841,7 @@ class DiceRow(tk.Frame):
         super().__init__(master)
         self.dice_vals=dice_vals
         self.row_val=row_val
+        self.row_image=None
         self.create_row()
 
     def create_row(self)->None:
@@ -849,8 +852,10 @@ class DiceRow(tk.Frame):
         if not self.dice_vals:
             return
 
-        for dice_val in self.dice_vals:
-            tk.Label(self, image=get_dice_image(dice_val)).pack(side="left")
+        self.row_image=self.dice_row_image()
+        tk.Label(self, image=self.row_image).pack(side="left")
+        # for dice_val in self.dice_vals:
+        #
 
         if self.row_val is not None:
             separator = tk.Frame(self, width=2, bg="black")
@@ -858,12 +863,19 @@ class DiceRow(tk.Frame):
             value_label = tk.Label(self, text=f"{self.row_val:.2f}", font=("Arial", 14))
             value_label.pack(side="left", padx=5)
 
-    def dice_row_image(self):
-        images=[get_dice_image(num) for num in self.dice_vals]
-        width=[img.width() for img in images]
-        height=max([img.height() for img in images])
-        
-        combined_image=Image.new("RGBA")
+    def dice_row_image(self)->tk.PhotoImage:
+        images = [get_dice_image(num) for num in self.dice_vals]
+        width = sum([img.width for img in images])
+        height = max([img.height for img in images])
+
+        combined_image = Image.new("RGBA", (width, height))
+
+        x = 0
+        for img in images:
+            combined_image.paste(img, (x, 0))
+            x += img.width
+        image=ImageTk.PhotoImage(combined_image)
+        return image
 
 
 class DiceCanvas(tk.Frame):
@@ -983,7 +995,11 @@ class ModeMenu:
         mode_menu.add_command(label="Dice Simulation", command=lambda: self.mode_callback("Dice"))
         mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.mode_callback("Piece"))
         mode_menu.add_separator()
-        mode_menu.add_command(label="", command=lambda: self.open_game())
+
+        game_menu=tk.Menu(mode_menu, tearoff=0)
+        game_menu.add_command(label="", command=lambda: self.open_game(0))
+        game_menu.add_command(label="",command=lambda: self.open_game(1))
+        mode_menu.add_cascade(label="", menu=game_menu)
         self.menubar.add_cascade(label="Mode", menu=mode_menu)
 
     def create_help_menu(self)->None:
@@ -1035,16 +1051,21 @@ class ModeMenu:
         help_window.geometry("600x400")
         help_window.resizable(False,False)
 
-    def open_game(self)->None:
+    def open_game(self,number)->None:
         """
         Callback function that creates and opens a new game window.
         """
         game_window = tk.Toplevel(self.root)
-        the_view = GameView(game_window)
-        controller = GameController(the_view)
+        if number==0:
+            the_view = GameView(game_window)
+            controller = GameController(the_view)
+            game_window.geometry("600x400")
+        else:
+            the_view = TOtherGameView(game_window)
+            controller = TOtherGameController(the_view)
+            game_window.geometry("300x500")
         the_view.pack(expand=True, fill='both')
         game_window.resizable(False, False)
-        game_window.geometry("600x400")
         game_window.title("Calculation Game")
 
     def mode_callback(self, mode:str)->None:
@@ -1140,17 +1161,10 @@ if __name__ == "__main__":
     the_root = tk.Tk()
     the_root.geometry("900x600")
 
-    text="""
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        """
 
-    the_help_window = HelpWindow(the_root, "help_Dis_Normal")
-    the_help_window.title("Help for, ")
-    the_help_window.geometry("600x400")
-    the_help_window.resizable(True, False)
+
+
+
 
     the_root.mainloop()
 

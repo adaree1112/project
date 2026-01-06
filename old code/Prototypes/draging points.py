@@ -2,7 +2,7 @@ import tkinter as tk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
-from project.piecewisecubicsplines import piecewise_cubic_spline,piecewise_linear
+from piecewisecubicsplines import piecewise_cubic_spline,piecewise_linear
 import random
 
 class DraggablePoint:
