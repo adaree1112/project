@@ -806,7 +806,7 @@ def get_dice_image(number:int)->tk.PhotoImage:
         The PhotoImage object representing the resized dice image.
     """
     if number not in dice_dict:
-        image = Image.open(f'project/assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
         dice_dict[number] = ImageTk.PhotoImage(image)
     return dice_dict[number]
 
@@ -857,6 +857,13 @@ class DiceRow(tk.Frame):
             separator.pack(side="left", fill="y", padx=5)
             value_label = tk.Label(self, text=f"{self.row_val:.2f}", font=("Arial", 14))
             value_label.pack(side="left", padx=5)
+
+    def dice_row_image(self):
+        images=[get_dice_image(num) for num in self.dice_vals]
+        width=[img.width() for img in images]
+        height=max([img.height() for img in images])
+        
+        combined_image=Image.new("RGBA")
 
 
 class DiceCanvas(tk.Frame):
@@ -1126,7 +1133,7 @@ class HelpWindow(tk.Toplevel):
         str
             the help text for the desired help window.
         """
-        with open(f"project/assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
+        with open(f"assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
             return file.read()
 
 if __name__ == "__main__":

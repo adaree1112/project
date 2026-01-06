@@ -295,7 +295,7 @@ def get_dice_image(number:int)->tk.PhotoImage:
         The PhotoImage object representing the resized dice image.
     """
     if number not in dice_dict:
-        image = Image.open(f'project/assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
+        image = Image.open(f'assets/dice/dice-{number}.png').resize(size, Image.Resampling.LANCZOS)
         dice_dict[number] = ImageTk.PhotoImage(image)
     return dice_dict[number]
 
