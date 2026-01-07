@@ -146,7 +146,7 @@ class TOtherGameView(tk.Frame):
         self.buttons.enable_button("Lower")
 
     def update_card_screen(self,card_and_scores,restart_callback=None):
-        if card_and_scores[0] is None:
+        if card_and_scores is None:
             restart_callback()
             return
         card,scores=card_and_scores

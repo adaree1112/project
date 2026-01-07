@@ -206,10 +206,10 @@ class GameView(tk.Frame):
         self.place_widgets()
 
     def show_num(self,num):
-        self.num_screen.config(text=str(num), font=("Courier",50))
+        self.num_screen.config(text=str(num), font=("Courier",75))
 
     def show_message(self,text):
-        self.num_screen.config(text=text,font=("Arial",15))
+        self.num_screen.config(text=text,font=("Arial",25))
 
 class EntryFrame(tk.Frame):
     def __init__(self,master,callback):
