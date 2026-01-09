@@ -1027,8 +1027,11 @@ class ModeMenu:
         help_menu.add_cascade(label="Piecewise Distribution", menu=piecewise_menu)
 
         help_menu.add_separator()
+        game_menu=tk.Menu(help_menu, tearoff=0)
+        game_menu.add_command(label="",command=lambda: self.help_callback("N","A")) # Not Applicable
+        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N")) #Applicable Not
+        help_menu.add_cascade(label="", menu=game_menu)
 
-        help_menu.add_command(label="",command=lambda: self.help_callback("N","A"))
 
         self.menubar.add_cascade(label="Help", menu=help_menu)
 
@@ -1044,7 +1047,7 @@ class ModeMenu:
             The distribution type to help with.
         """
         help_window = HelpWindow(self.root,f"help_{mode}_{dist_type}")
-        if mode!="N":
+        if mode not in ["N","A"]:
             help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
         else:
             help_window.title("THE GAME")

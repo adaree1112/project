@@ -1,0 +1,17 @@
+Higher or Lower
+---------------
+
+Press start to begin.
+Press higher if you think the next card will be higher.
+Press lower if you think the next card will be lower.
+
+If you guess correct,
+- Score goes up
+- Run goes up
+If you guess incorrect,
+- Run goes to 0
+If the card is the same,
+- Run goes up
+
+When you run out of cards,
+Start again!
