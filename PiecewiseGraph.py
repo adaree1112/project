@@ -1050,7 +1050,7 @@ class NEWDiceCanvas(tk.Frame):
         score_str="\n\n"
         for row in self.dice_vals_rows:
             dice=row[0]
-            output_str+="\n".join(["".join(line_parts) for line_parts in zip(*[dice_str_dict[str(d)].split("\n") for d in dice])])+"\n"
+            output_str+="\n".join(["".join(line_parts) for line_parts in zip(*[self.dice_str_dict[str(d)].split("\n") for d in dice])])+"\n"
             score_str+=f"{row[1]}\n\n\n\n\n"
         return output_str
 
