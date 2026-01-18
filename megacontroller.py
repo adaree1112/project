@@ -2,7 +2,7 @@ import tkinter as tk
 
 from LabelSpinbox import TwoLabels
 from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice,NormDice, BinDice
-from PiecewiseGraph import NEWDiceCanvas,DiceFrame,ComboboxFrame,DistributionSettingsFrame, DistributionGraph, DicetributionGraph,DicetributionSettingsFrame, DiceCanvas, ModeMenu,PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
+from PiecewiseGraph import ComboboxFrame,DistributionSettingsFrame, DistributionGraph, DicetributionGraph,DicetributionSettingsFrame, DiceCanvas, ModeMenu,PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
 
 
 class MEGAController:
@@ -64,6 +64,7 @@ class MEGAController:
         -------
 
         """
+        self.show_real=False
         latex=""
         settings_args=[]
         settings_kwargs={}
@@ -478,7 +479,7 @@ class View(tk.Frame):
         self.dice_or_calc.destroy()
         match mode:
             case "dice":
-                self.dice_or_calc=NEWDiceCanvas(self, *args)
+                self.dice_or_calc=DiceCanvas(self, *args)
             case "calc":
                 self.dice_or_calc=CalculationFrame(self, *args)
         self.dice_or_calc.grid(row=2, column=1, sticky="nsew", padx=(5, 10), pady=5)

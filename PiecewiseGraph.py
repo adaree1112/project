@@ -1,6 +1,5 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-import json
 
 import numpy as np
 from PIL import Image, ImageTk
@@ -877,43 +876,6 @@ class DiceRow(tk.Frame):
         image=ImageTk.PhotoImage(combined_image)
         return image
 
-class DiceFrame(tk.Frame):
-    """
-    A frame that contains a button to open a DiceWindow.
-
-    Attributes
-    ----------
-    dice_vals_rows : list[tuple[list[int],int|float|None]]
-        A list of tuples where each tuple consists of a list of dice and an optional value.
-    open_button : tk.Button
-        The button that opens the DiceWindow when clicked.
-    """
-    def __init__(self, master:tk.Widget, dice_vals_rows: list[tuple[list[int],int|float|None]])->None:
-        """
-        Initialises the DiceFrame widget.
-
-        Parameters
-        ----------
-        master : tk.Widget
-            The parent widget for the frame.
-        dice_vals_rows : list[tuple[list[int],int|float|None]]
-            A list of tuples where each tuple consists of a list of dice and an optional value.
-        """
-        super().__init__(master)
-        self.grid_propagate(False)
-
-        self.dice_vals_rows=dice_vals_rows
-        self.open_button=tk.Button(self,text="Open Dice Rolls Window",command=self.open_dice_window)
-        self.open_button.pack(fill="both", expand=True)
-
-    def open_dice_window(self)->None:
-        """
-        Opens a new DiceWindow when the button is clicked.
-        """
-        dice_window=DiceWindow(self,self.dice_vals_rows)
-        dice_window.grab_set()
-
-
 class DiceCanvas(tk.Frame):
     """
     A canvas that contains a scrollable frame for displaying multiple DiceRow instances.
@@ -971,88 +933,18 @@ class DiceCanvas(tk.Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-
-        maxi=min(100,len(self.dice_vals_rows))
-        if maxi<len(self.dice_vals_rows):
-            tk.Label(self.scrollable_frame,text="only 100 are rendered due to processing power",font=("Arial", 10),fg="red").pack(side="top", anchor="nw")
-        for dice_vals_row in self.dice_vals_rows[:maxi]:
+        c=0
+        for dice_vals_row in self.dice_vals_rows:
             vals=dice_vals_row[0]
+            c+=len(vals)
             num=dice_vals_row[1]
+            if c>=100:
+                tk.Label(self.scrollable_frame, text="only 100 are rendered due to processing power",
+                         font=("Arial", 10), fg="red").pack(side="top", anchor="nw")
+                break
             DiceRow(self.scrollable_frame, vals,num).pack(side="top", anchor="nw")
 
-class NEWDiceCanvas(tk.Frame):
-    """
-    A canvas that contains a scrollable frame for displaying multiple DiceRow instances.
 
-    Attributes
-    ----------
-    dice_vals_rows : list[tuple[list[int],int|float|None]]
-        A list of tuples where each tuple consists of a list of dice and an optional value
-    canvas : tk.Canvas
-        The canvas widget used tp make the frame scrollable.
-    y_scrollbar : tk.Scrollbar
-        The canvas's vertical scrollbar
-    x_scrollbar : tk.Scrollbar
-        The canvas's horizontal scrollbar.
-    scrollable_frame : tkk.Frame
-        A frame inside the canvas that contains DiceRow instances.
-
-    """
-    def __init__(self, container_frame:tk.Frame, dice_vals_rows: list[tuple[list[int],int|float|None]])->None:
-        """
-        Initialises the DiceCanvas widget.
-
-        Parameters
-        ----------
-        container_frame : tk.Frame
-            The parent widget to which the canvas will be added.
-        dice_vals_rows : list[tuple[list[int],int|float|None]]
-            A list of tuples where each tuple consists of a list of dice and an optional value.
-        """
-        super().__init__(container_frame)
-        self.grid_propagate(False)
-
-        self.dice_vals_rows=dice_vals_rows
-        self.canvas=tk.Canvas(self)
-        self.y_scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.x_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
-        self.scrollable_frame = ttk.Frame(self.canvas)
-
-        self.scrollable_frame.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-
-        self.canvas.configure(yscrollcommand=self.y_scrollbar.set, xscrollcommand=self.x_scrollbar.set)
-
-        self.place_widgets()
-
-    def place_widgets(self)->None:
-        """
-        Places the canvas, scrollbars, and rows of dice within the parent widget.
-        """
-        self.canvas.grid(row=0, column=0, sticky="nsew")
-        self.y_scrollbar.grid(row=0, column=1, sticky="ns")
-        self.x_scrollbar.grid(row=1, column=0, sticky="ew")
-
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-
-        maxi=min(100,len(self.dice_vals_rows))
-        if maxi<len(self.dice_vals_rows):
-            tk.Label(self.scrollable_frame,text="only 100 are rendered due to processing power",font=("Arial", 10),fg="red").pack(side="top", anchor="nw")
-        
-        tk.Label(self.scrollable_frame,text=self.get_single_string(),font=("Courier", 12),justify="left",anchor="nw").pack(side="top", anchor="nw")
-
-
-    def get_single_string(self):
-        output_str=""
-        score_str="\n\n"
-        for row in self.dice_vals_rows:
-            dice=row[0]
-            output_str+="\n".join(["".join(line_parts) for line_parts in zip(*[self.dice_str_dict[str(d)].split("\n") for d in dice])])+"\n"
-            score_str+=f"{row[1]}\n\n\n\n\n"
-        return output_str
 
 
 
