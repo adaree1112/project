@@ -1,5 +1,38 @@
 import numpy as np
 
+def merge_sort(to_sort, key=lambda x: x):
+    if len(to_sort) == 1:
+        return to_sort
+
+    middle = len(to_sort) // 2
+    left_half = to_sort[:middle]
+    right_half = to_sort[middle:]
+
+    left_half = merge_sort(left_half, key=key)
+    right_half = merge_sort(right_half, key=key)
+
+    return merge(left_half, right_half, key)
+
+
+def merge(left, right, key):
+    result = []
+    l = 0
+    r = 0
+
+    while l < len(left) and r < len(right):
+        if key(left[l]) < key(right[r]):
+            result.append(left[l])
+            l += 1
+        else:  # priority to left if equal
+            result.append(right[r])
+            r += 1
+
+    result.extend(left[l:])
+    result.extend(right[r:])
+
+    return result
+
+
 def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.float64]])->list[np.ndarray]:
     """
     Compute the coefficients of piecewise cubic splines to connect given points.
@@ -15,7 +48,7 @@ def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.f
         Each array has the form [x1,x2,a,b,c,d].
         This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
     """
-    points = sorted(points, key=lambda p: p[0])
+    points = merge_sort(points, key=lambda p: p[0])
     n=len(points)-1
 
     matrix=np.zeros((4*n,4*n))
@@ -24,41 +57,41 @@ def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.f
     ## f(X1) = y1, f(X2)=y2
     for i in range(n):
 
-        matrix[2*i][4*i+0] = points[i][0]**3
-        matrix[2*i][4*i+1] = points[i][0]**2
-        matrix[2*i][4*i+2] = points[i][0]**1
-        matrix[2*i][4*i+3] = points[i][0]**0
-        matb[2*i][0]=points[i][1]
+        matrix[2*i,4*i+0] = points[i][0]**3
+        matrix[2*i,4*i+1] = points[i][0]**2
+        matrix[2*i,4*i+2] = points[i][0]**1
+        matrix[2*i,4*i+3] = points[i][0]**0
+        matb[2*i,0]=points[i][1]
 
-        matrix[2*i+1][4*i+0] = points[i+1][0] ** 3
-        matrix[2*i+1][4*i+1] = points[i+1][0] ** 2
-        matrix[2*i+1][4*i+2] = points[i+1][0] ** 1
-        matrix[2*i+1][4*i+3] = points[i+1][0] ** 0
-        matb[2*i+1][0] = points[i+1][1]
+        matrix[2*i+1,4*i+0] = points[i+1][0] ** 3
+        matrix[2*i+1,4*i+1] = points[i+1][0] ** 2
+        matrix[2*i+1,4*i+2] = points[i+1][0] ** 1
+        matrix[2*i+1,4*i+3] = points[i+1][0] ** 0
+        matb[2*i+1,0] = points[i+1][1]
 
     ## f1'(x2)-f2'(x2)=0
     for i in range(n-1):
-        matrix[2*n+i][4*i+0] = 3*points[i+1][0]**2
-        matrix[2*n+i][4*i+1] = 2*points[i+1][0]**1
-        matrix[2*n+i][4*i+2] = 1*points[i+1][0]**0
+        matrix[2*n+i,4*i+0] = 3*points[i+1][0]**2
+        matrix[2*n+i,4*i+1] = 2*points[i+1][0]**1
+        matrix[2*n+i,4*i+2] = 1*points[i+1][0]**0
 
-        matrix[2*n+i][4*i+4] = -3*points[i+1][0]**2
-        matrix[2*n+i][4*i+5] = -2*points[i+1][0]**1
-        matrix[2*n+i][4*i+6] = -1*points[i+1][0]**0
+        matrix[2*n+i,4*i+4] = -3*points[i+1][0]**2
+        matrix[2*n+i,4*i+5] = -2*points[i+1][0]**1
+        matrix[2*n+i,4*i+6] = -1*points[i+1][0]**0
     ## f1''(x2)-f2''(x2)=0
     for i in range(n-1):
-        matrix[2*n+(n-1)+i][4*i+0] = 6*points[i+1][0]**1
-        matrix[2*n+(n-1)+i][4*i+1] = 2*points[i+1][0]**0
+        matrix[2*n+(n-1)+i,4*i+0] = 6*points[i+1][0]**1
+        matrix[2*n+(n-1)+i,4*i+1] = 2*points[i+1][0]**0
 
-        matrix[2*n+(n-1)+i][4*i+4] = -6*points[i+1][0]**1
-        matrix[2*n+(n-1)+i][4*i+5] = -2*points[i+1][0]**0
+        matrix[2*n+(n-1)+i,4*i+4] = -6*points[i+1][0]**1
+        matrix[2*n+(n-1)+i,4*i+5] = -2*points[i+1][0]**0
     #"""
     ## f1''(x1)=0
-    matrix[-2][0]=6*points[0][0]
-    matrix[-2][1]=2
+    matrix[-2,0]=6*points[0][0]
+    matrix[-2,1]=2
     ## f(n-1))''(x(n-1))=0
-    matrix[-1][-4]=6*points[-1][0]
-    matrix[-1][-3]=2
+    matrix[-1,-4]=6*points[-1][0]
+    matrix[-1,-3]=2
 
     coefficient_matrix=np.linalg.solve(matrix,matb)
     pieces=[np.array([points[i][0],points[i+1][0],coefficient_matrix[4*i][0],coefficient_matrix[4*i+1][0],coefficient_matrix[4*i+2][0],coefficient_matrix[4*i+3][0]])
@@ -84,7 +117,7 @@ def piecewise_linear(points: list[tuple[float, float]]) -> list[np.ndarray]:
         The coefficient of the high order terms, a and b, are 0
 
     """
-    points = sorted(points, key=lambda p: p[0])
+    points = merge_sort(points, key=lambda p: p[0])
 
     output = []
     for point, next_point in zip(points, points[1:]):
@@ -127,7 +160,7 @@ def deal_with_negatives(pieces:list[np.ndarray]) -> list[np.ndarray]:
         y=a*x**3+b*x**2+c*x+d
         if min(y)<0:
 
-            roots = sorted([root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2])
+            roots = merge_sort([root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2])
             p = [x1] + roots + [x2]
             for x1, x2 in zip(p, p[1:]):
                 x = (x1 + x2) / 2

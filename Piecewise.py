@@ -4,7 +4,7 @@ import numpy as np
 import math
 from scipy.special import comb
 
-from piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear
+from piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear, merge_sort
 
 
 def integrate_nbic(x1: float, x2: float, a: float, b: float, c: float, d: float, n: int) -> float:
@@ -276,7 +276,7 @@ class Piecewise:
             If True, use piecewise linear interpolation.
             If False, use cubic spline interpolation.
         """
-        sorted_points = sorted(self._points, key=lambda p: p[0])
+        sorted_points = merge_sort(self._points, key=lambda p: p[0])
         if not linear:
             self.pieces = piecewise_cubic_spline(sorted_points)
         else:
