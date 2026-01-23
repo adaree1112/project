@@ -1,5 +1,26 @@
 import numpy as np
 
+
+def merge_sort(to_sort, key=lambda x: x):
+    if len(to_sort) <= 1:
+        return to_sort
+    mid = len(to_sort) // 2
+    left = merge_sort(to_sort[:mid], key=key)
+    right = merge_sort(to_sort[mid:], key=key)
+
+    return merge(left, right, key)
+
+
+def merge(left, right, key):
+    l = r = 0;
+    out = []
+    while l < len(left) and r < len(right):
+        out.append(left[l] if key(left[l]) < key(right[r]) else right[r])
+        l += key(left[l]) < key(right[r])
+        r += not (key(left[l - 1]) < key(right[r - 1]))
+    return out + left[l:] + right[r:]
+
+
 def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.float64]])->list[np.ndarray]:
     """
     Compute the coefficients of piecewise cubic splines to connect given points.
@@ -15,7 +36,7 @@ def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.f
         Each array has the form [x1,x2,a,b,c,d].
         This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
     """
-    points = sorted(points, key=lambda p: p[0])
+    points = merge_sort(points, key=lambda p: p[0])
     n=len(points)-1
 
     matrix=np.zeros((4*n,4*n))
@@ -84,7 +105,7 @@ def piecewise_linear(points: list[tuple[float, float]]) -> list[np.ndarray]:
         The coefficient of the high order terms, a and b, are 0
 
     """
-    points = sorted(points, key=lambda p: p[0])
+    points = merge_sort(points, key=lambda p: p[0])
 
     output = []
     for point, next_point in zip(points, points[1:]):
@@ -127,7 +148,7 @@ def deal_with_negatives(pieces:list[np.ndarray]) -> list[np.ndarray]:
         y=a*x**3+b*x**2+c*x+d
         if min(y)<0:
 
-            roots = sorted([root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2])
+            roots = merge_sort([root for root in np.roots(piece[2:]) if np.isreal(root) and x1 <= root <= x2])
             p = [x1] + roots + [x2]
             for x1, x2 in zip(p, p[1:]):
                 x = (x1 + x2) / 2

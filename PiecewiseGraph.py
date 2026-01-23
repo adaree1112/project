@@ -12,7 +12,7 @@ from Piecewise import Piecewise, AbstractStatisticalModel, Normal
 from DraggablePoint import DraggablePoint
 from LaTeXformulaimage import latex_to_tk_image
 from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
-from the_game import GameView,GameController
+from the_game import GameView, GameController
 from tother_game import TOtherGameView, TOtherGameController
 
 
@@ -35,7 +35,8 @@ class PiecewiseGraph(tk.Frame):
     draggable_points : list of DraggablePoint
         A list of Draggable points on the graph.
     """
-    def __init__(self, master:tk.Widget, controller:object,add_point:callable)->None:
+
+    def __init__(self, master: tk.Widget, controller: object, add_point: callable) -> None:
         """
         Initialises the PiecewiseGraph frame.
 
@@ -65,13 +66,13 @@ class PiecewiseGraph(tk.Frame):
 
     def update_plot(
             self,
-            points:list[tuple[float|int|np.float64,float|int|np.float64]],
-            pieces:list[ndarray],
-            is_normalised:bool,
-            cdf_func:callable=None,
-            shade_min:int|float|np.float64=None,
-            shade_max:int|float|np.float64=None,
-            show_cursors:bool=True)->None:
+            points: list[tuple[float | int | np.float64, float | int | np.float64]],
+            pieces: list[ndarray],
+            is_normalised: bool,
+            cdf_func: callable = None,
+            shade_min: int | float | np.float64 = None,
+            shade_max: int | float | np.float64 = None,
+            show_cursors: bool = True) -> None:
         """
         Updates the plot based on new data, including shading.
 
@@ -115,8 +116,8 @@ class PiecewiseGraph(tk.Frame):
         x, y = zip(*points)
         self.ax.plot(x, y, 'ro')
 
-        x_vals=np.array([])
-        y_vals=np.array([])
+        x_vals = np.array([])
+        y_vals = np.array([])
 
         for piece in pieces:
             lower, upper, a, b, c, d, = piece
@@ -132,10 +133,11 @@ class PiecewiseGraph(tk.Frame):
                     y_shade = a * x_shade ** 3 + b * x_shade ** 2 + c * x_shade + d
                     self.ax.fill_between(x_shade, y_shade, 0, color='yellow', alpha=0.3)
 
-        plot=self.ax.plot(x_vals, y_vals, 'b-')
+        plot = self.ax.plot(x_vals, y_vals, 'b-')
 
         if show_cursors and is_normalised:
             cursor = mplcursors.cursor(plot, hover=True)
+
             @cursor.connect("add")
             def on_add(sel):
                 sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X<=x)={cdf_func(sel.target[0]):.4f}")
@@ -145,7 +147,7 @@ class PiecewiseGraph(tk.Frame):
         self.ax.autoscale_view()
         self.canvas.draw()
 
-    def add_point_on_click(self, event:tk.Event)->None:
+    def add_point_on_click(self, event: tk.Event) -> None:
         """
         Adds a point to the graph when double-clicked.
 
@@ -154,10 +156,13 @@ class PiecewiseGraph(tk.Frame):
         event : tk.Event
             The mouse event triggered by the double click.
         """
-        x_data = self.ax.get_xlim()[0] + (self.ax.get_xlim()[1] - self.ax.get_xlim()[0]) * event.x / self.canvas.get_tk_widget().winfo_width()
-        y_data = self.ax.get_ylim()[1] + (self.ax.get_ylim()[0] - self.ax.get_ylim()[1]) * event.y / self.canvas.get_tk_widget().winfo_height()
+        x_data = self.ax.get_xlim()[0] + (
+                    self.ax.get_xlim()[1] - self.ax.get_xlim()[0]) * event.x / self.canvas.get_tk_widget().winfo_width()
+        y_data = self.ax.get_ylim()[1] + (self.ax.get_ylim()[0] - self.ax.get_ylim()[
+            1]) * event.y / self.canvas.get_tk_widget().winfo_height()
         y_data = max(0, y_data)
         self.add_point(point=(x_data, y_data))
+
 
 class DistributionGraph(tk.Frame):
     """
@@ -172,7 +177,8 @@ class DistributionGraph(tk.Frame):
     canvas : FigureCanvasTkAgg
         The canvas that integrates the matplotlib plot into tkinter.
     """
-    def __init__(self, master:tk.Widget)->None:
+
+    def __init__(self, master: tk.Widget) -> None:
         """
         Initialises the DistributionGraph frame.
 
@@ -187,15 +193,14 @@ class DistributionGraph(tk.Frame):
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-
     def update_plot(self,
-                    x_vals:list[float|np.float64]|np.ndarray[float|np.float64],
-                    y_vals:list[float|np.float64]|np.ndarray[float|np.float64],
-                    graph_type:str,
-                    cdf_func:callable=None,
-                    shade_min:int|float|np.float64 =None,
-                    shade_max:int|float|np.float64=None,
-                    show_cursors:bool=True)->None:
+                    x_vals: list[float | np.float64] | np.ndarray[float | np.float64],
+                    y_vals: list[float | np.float64] | np.ndarray[float | np.float64],
+                    graph_type: str,
+                    cdf_func: callable = None,
+                    shade_min: int | float | np.float64 = None,
+                    shade_max: int | float | np.float64 = None,
+                    show_cursors: bool = True) -> None:
         """
         Updates the plot with new data.
 
@@ -232,18 +237,18 @@ class DistributionGraph(tk.Frame):
                 shade_max = max(x_vals)
 
         if graph_type == 'bar':
-            bars=self.ax.bar(x_vals, y_vals)
+            bars = self.ax.bar(x_vals, y_vals)
             if shade_min is not None and shade_max is not None:
                 for bar, x in zip(bars, x_vals):
                     if shade_min <= x <= shade_max:
                         bar.set_color('orange')
             if show_cursors:
                 cursor = mplcursors.cursor(bars, hover=True)
+
                 @cursor.connect("add")
                 def on_add(sel):
                     sel.annotation.set_text(f"x = {sel.target[0]:.0f}\nP(X=x)={sel.target[1]:.4f}")
                     sel.annotation.get_bbox_patch().set(alpha=0.8)
-
 
         if graph_type == 'line':
             plot = self.ax.plot(x_vals, y_vals)
@@ -255,12 +260,14 @@ class DistributionGraph(tk.Frame):
 
             if show_cursors:
                 cursor = mplcursors.cursor(plot, hover=True)
+
                 @cursor.connect("add")
                 def on_add(sel):
                     sel.annotation.set_text(f"x = {sel.target[0]:.2f}\nP(X≤x)={cdf_func(sel.target[0]):.4f}")
                     sel.annotation.get_bbox_patch().set(alpha=0.8)
 
         self.canvas.draw()
+
 
 class DicetributionGraph(tk.Frame):
     """
@@ -275,7 +282,8 @@ class DicetributionGraph(tk.Frame):
     canvas : FigureCanvasTkAgg
         The canvas that integrates the matplotlib plot into tkinter.
     """
-    def __init__(self, master:tk.Widget)->None:
+
+    def __init__(self, master: tk.Widget) -> None:
         """
         Initialises the DicetributionGraph frame.
 
@@ -293,11 +301,11 @@ class DicetributionGraph(tk.Frame):
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def update_plot(self,
-                    x_vals:list[float|np.float64]|np.ndarray[float|np.float64],
-                    y_vals:list[float|np.float64]|np.ndarray[float|np.float64],
-                    r_x_vals:list[float|np.float64]|np.ndarray[float|np.float64]=None,
-                    r_y_vals:list[float|np.float64]|np.ndarray[float|np.float64]=None,
-                    r_graph_type:str=None):
+                    x_vals: list[float | np.float64] | np.ndarray[float | np.float64],
+                    y_vals: list[float | np.float64] | np.ndarray[float | np.float64],
+                    r_x_vals: list[float | np.float64] | np.ndarray[float | np.float64] = None,
+                    r_y_vals: list[float | np.float64] | np.ndarray[float | np.float64] = None,
+                    r_graph_type: str = None):
         """
         Updates the plot with new simulated data and possibly real data.
 
@@ -322,14 +330,14 @@ class DicetributionGraph(tk.Frame):
             bar_width = 0.35
             x_pos = range(len(x_vals))
 
-            self.ax.bar([x - bar_width / 2 for x in x_pos], y_vals,width=bar_width, label='Simulated')
-            self.ax.bar([x + bar_width / 2 for x in x_pos], r_y_vals,width=bar_width, color='orange', label='Real')
+            self.ax.bar([x - bar_width / 2 for x in x_pos], y_vals, width=bar_width, label='Simulated')
+            self.ax.bar([x + bar_width / 2 for x in x_pos], r_y_vals, width=bar_width, color='orange', label='Real')
 
             self.ax.set_xticks(x_pos)
             self.ax.set_xticklabels(x_vals)
             self.ax.legend()
         else:
-            bar=self.ax.bar(x_vals, y_vals)
+            bar = self.ax.bar(x_vals, y_vals)
 
             if r_x_vals is not None and r_graph_type == 'line':
                 bar.set_label("Simulated")
@@ -338,6 +346,7 @@ class DicetributionGraph(tk.Frame):
                 self.ax.set_xlim(right=6, left=0)
 
         self.canvas.draw()
+
 
 class DicetributionSettingsFrame(tk.Frame):
     """
@@ -352,7 +361,9 @@ class DicetributionSettingsFrame(tk.Frame):
     check : ttk.checkbutton
         The checkbutton widget that toggles the 'show real' option.
     """
-    def __init__(self, master:tk.Widget,parameters:dict[str,object],on_change:callable,success_vals_required:bool=True)->None:
+
+    def __init__(self, master: tk.Widget, parameters: dict[str, object], on_change: callable,
+                 success_vals_required: bool = True) -> None:
         """
         Initialises  the dice distribution settings frame.
 
@@ -375,18 +386,19 @@ class DicetributionSettingsFrame(tk.Frame):
         self.on_change = on_change
 
         if success_vals_required:
-            DiceChoices(self,on_change).pack()
+            DiceChoices(self, on_change).pack()
 
-        DistributionSettingsFrame(self,parameters,on_change).pack()
-        self.var=tk.BooleanVar(value=False)
-        self.check=ttk.Checkbutton(self,variable=self.var,command=self.on_button_change,text="Show real")
+        DistributionSettingsFrame(self, parameters, on_change).pack()
+        self.var = tk.BooleanVar(value=False)
+        self.check = ttk.Checkbutton(self, variable=self.var, command=self.on_button_change, text="Show real")
         self.check.pack()
 
-    def on_button_change(self)->None:
+    def on_button_change(self) -> None:
         """
         Trigger the on_change callback when the 'Show real' checkbox is toggled.
         """
         self.on_change(show_real=self.var.get())
+
 
 class DistributionSettingsFrame(tk.Frame):
     """
@@ -397,7 +409,8 @@ class DistributionSettingsFrame(tk.Frame):
     on_change : callable
         A callback function that is triggered when a setting changes.
     """
-    def __init__(self, master:tk.Widget,parameters:dict[str:object],on_change:callable)->None:
+
+    def __init__(self, master: tk.Widget, parameters: dict[str:object], on_change: callable) -> None:
         """
         Initialises  the distribution settings frame with the given parameters.
 
@@ -416,7 +429,7 @@ class DistributionSettingsFrame(tk.Frame):
         self.on_change = on_change
 
         for param in parameters.values():
-            LabelSpinbox(self,param,self.on_change).pack()
+            LabelSpinbox(self, param, self.on_change).pack()
 
 
 class PiecewiseSettingsFrame(tk.Frame):
@@ -434,7 +447,9 @@ class PiecewiseSettingsFrame(tk.Frame):
     normalise_button : tk.Button
         A button to normalise the piecewise function.
     """
-    def __init__(self, master:tk.Widget,on_change:callable,add:callable,remove:callable,normalise:callable)->None:
+
+    def __init__(self, master: tk.Widget, on_change: callable, add: callable, remove: callable,
+                 normalise: callable) -> None:
         """
         Initialises  the piecewise settings frame.
 
@@ -454,13 +469,13 @@ class PiecewiseSettingsFrame(tk.Frame):
         super().__init__(master)
         self.grid_propagate(False)
 
-        self.radiobuttons=PairRadioButton(self, ["Cubic Splines", "Linear"], on_change)
-        self.add_button = tk.Button(self,text="Add Point", command=add)
+        self.radiobuttons = PairRadioButton(self, ["Cubic Splines", "Linear"], on_change)
+        self.add_button = tk.Button(self, text="Add Point", command=add)
         self.remove_button = tk.Button(self, text="Remove Point", command=remove)
-        self.normalise_button=tk.Button(self,text="Normalise",command=normalise)
+        self.normalise_button = tk.Button(self, text="Normalise", command=normalise)
         self.place_widgets()
 
-    def place_widgets(self)->None:
+    def place_widgets(self) -> None:
         """
         Place widgets in the frame using the pack geometry manager.
 
@@ -516,7 +531,8 @@ class CalculationFrame(tk.Frame):
     combobox : ttk.Combobox
         Combobox widget allowing the user to select an (in)equality.
     """
-    def __init__(self, master:tk.Widget, model:AbstractStatisticalModel, shade_between:callable)->None:
+
+    def __init__(self, master: tk.Widget, model: AbstractStatisticalModel, shade_between: callable) -> None:
         """
         Initialises  the calculation frame with the given model and shading function.
         Parameters
@@ -534,11 +550,13 @@ class CalculationFrame(tk.Frame):
         self.shade_between = shade_between
 
         self.label1 = tk.Label(self, text="P(X", width=2)
-        self.combobox = ttk.Combobox(self, values=["<", "≤"] + ["="] * (not (isinstance(self.model, Normal) or isinstance(self.model, Piecewise))) + ["≥", ">", "< <", "≤ ≤"], width=2)
+        self.combobox = ttk.Combobox(self, values=["<", "≤"] + ["="] * (
+            not (isinstance(self.model, Normal) or isinstance(self.model, Piecewise))) + ["≥", ">", "< <", "≤ ≤"],
+                                     width=2)
 
-        self.entry1_var=tk.StringVar()
-        self.entry2_var=tk.StringVar()
-        self.entry3_var=tk.StringVar()
+        self.entry1_var = tk.StringVar()
+        self.entry2_var = tk.StringVar()
+        self.entry3_var = tk.StringVar()
 
         self.entry1 = tk.Entry(self, width=6, textvariable=self.entry1_var)
         self.label2 = tk.Label(self, text=")=", width=2)
@@ -559,7 +577,7 @@ class CalculationFrame(tk.Frame):
 
         self.place_widgets()
 
-    def place_widgets(self) ->None:
+    def place_widgets(self) -> None:
         """
         Places all the widgets in the frame, updating their layout based on the current selection.
 
@@ -580,7 +598,7 @@ class CalculationFrame(tk.Frame):
         self.label2.pack(side="left")
         self.entry2.pack(side="left")
 
-    def refresh(self, _event:tk.Event=None)->None:
+    def refresh(self, _event: tk.Event = None) -> None:
         """
         Refreshes the state of the widgets based on the current combobox selection.
 
@@ -595,14 +613,15 @@ class CalculationFrame(tk.Frame):
             self.entry1_updating()
             self.label1_b_var.set(str(self.combobox.get())[0] + "X")
             self.entry2.config(state="normal")
-            if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <", "≤ ≤"]) or self.combobox.get() == "=":
+            if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <",
+                                                                                 "≤ ≤"]) or self.combobox.get() == "=":
                 self.entry2.config(state="disabled")
             self.place_widgets()
             self.update_shading()
         except ValueError:
             pass
 
-    def entry1_updating(self,_event:tk.Event=None)->None:
+    def entry1_updating(self, _event: tk.Event = None) -> None:
         """
         Updates the value of entry2 based on the current value of entry 1 (and 3) and combobox selection
 
@@ -616,22 +635,21 @@ class CalculationFrame(tk.Frame):
         try:
             a = np.float64(self.entry3_var.get())
         except ValueError:
-            a=0
+            a = 0
         x = np.float64(self.entry1_var.get())
-        b=x
-        pdict={"<":self.model.pxlessthan(x),
-               "≤":self.model.pxlessthanequalto(x),
-               "=":self.model.pxequals(x),
-               "≥":self.model.pxgreaterthanequalto(x),
-               ">":self.model.pxgreaterthan(x),
-               "< <":self.model.pxexclusivein(a,b),
-               "≤ ≤":self.model.pxinclusivein(a, b),
-               }
+        b = x
+        pdict = {"<": self.model.pxlessthan(x),
+                 "≤": self.model.pxlessthanequalto(x),
+                 "=": self.model.pxequals(x),
+                 "≥": self.model.pxgreaterthanequalto(x),
+                 ">": self.model.pxgreaterthan(x),
+                 "< <": self.model.pxexclusivein(a, b),
+                 "≤ ≤": self.model.pxinclusivein(a, b),
+                 }
         self.entry2_var.set(f"{pdict[self.combobox.get()]:.4f}")
         self.update_shading()
 
-
-    def entry2_updating(self, _event:tk.Event=None)->None:
+    def entry2_updating(self, _event: tk.Event = None) -> None:
         """
         Updates the value of entry1 (and 3) based on the current value of entry 2 and combobox selection
 
@@ -642,19 +660,19 @@ class CalculationFrame(tk.Frame):
         """
         p = np.float64(self.entry2_var.get())
         if self.combobox.get() not in ["< <", "≤ ≤"]:
-            pdict={"<":self.model.xplessthan(p),
-                   "≤":self.model.xplessthanequalto(p),
-                   "≥":self.model.xpgreaterthanequalto(p),
-                   ">":self.model.xpgreaterthan(p),
-                   }
+            pdict = {"<": self.model.xplessthan(p),
+                     "≤": self.model.xplessthanequalto(p),
+                     "≥": self.model.xpgreaterthanequalto(p),
+                     ">": self.model.xpgreaterthan(p),
+                     }
             self.entry1_var.set(f"{pdict[self.combobox.get()]:.4f}")
         else:
-            a,b=self.model.xpexclusivein(p)
+            a, b = self.model.xpexclusivein(p)
             self.entry1_var.set(f"{b:.4f}")
             self.entry3_var.set(f"{a:.4f}")
         self.update_shading()
 
-    def entry3_updating(self, _event:tk.Event=None) -> None:
+    def entry3_updating(self, _event: tk.Event = None) -> None:
         """
         Updates the value of entry2 based on the current value of entry 1 and 3 and the combobox selection
 
@@ -667,39 +685,43 @@ class CalculationFrame(tk.Frame):
         """
         a = np.float64(self.entry3_var.get())
         b = np.float64(self.entry1_var.get())
-        pdict={"< <":self.model.pxexclusivein(a,b),
-               "≤ ≤":self.model.pxinclusivein(a, b),
-               }
+        pdict = {"< <": self.model.pxexclusivein(a, b),
+                 "≤ ≤": self.model.pxinclusivein(a, b),
+                 }
         self.entry2_var.set(f"{pdict[self.combobox.get()]:.4f}")
         self.update_shading()
 
-    def update_shading(self)->None:
+    def update_shading(self) -> None:
         """
         Updates the shading of the graph based on the current input values
 
         Adjusts the bounds dictionary depending on whether the model is discrete or continuous.
         """
         if self.model.is_discrete:
-            bounds_dict = {"<":{"shade_max": np.float64(self.entry1_var.get()) - 1},
-                          "≤":{"shade_max":np.float64(self.entry1_var.get())},
-                          "=":{"shade_min":np.float64(self.entry1_var.get()), "shade_max":np.float64(self.entry1_var.get())},
-                          "≥":{"shade_min":np.float64(self.entry1_var.get())},
-                          ">":{"shade_min": np.float64(self.entry1_var.get()) + 1}}
+            bounds_dict = {"<": {"shade_max": np.float64(self.entry1_var.get()) - 1},
+                           "≤": {"shade_max": np.float64(self.entry1_var.get())},
+                           "=": {"shade_min": np.float64(self.entry1_var.get()),
+                                 "shade_max": np.float64(self.entry1_var.get())},
+                           "≥": {"shade_min": np.float64(self.entry1_var.get())},
+                           ">": {"shade_min": np.float64(self.entry1_var.get()) + 1}}
             if self.combobox.get() in ["< <", "≤ ≤"]:
-                bounds_dict={"< <":{"shade_min": np.float64(self.entry3_var.get()) + 1, "shade_max": np.float64(self.entry1_var.get()) - 1},
-                            "≤ ≤":{"shade_min":np.float64(self.entry3_var.get()), "shade_max":np.float64(self.entry1_var.get())}
-                            }
+                bounds_dict = {"< <": {"shade_min": np.float64(self.entry3_var.get()) + 1,
+                                       "shade_max": np.float64(self.entry1_var.get()) - 1},
+                               "≤ ≤": {"shade_min": np.float64(self.entry3_var.get()),
+                                       "shade_max": np.float64(self.entry1_var.get())}
+                               }
         else:
-            bounds_dict = {"<":{"shade_max":np.float64(self.entry1_var.get())},
-                          "≤":{"shade_max":np.float64(self.entry1_var.get())},
-                          "≥":{"shade_min":np.float64(self.entry1_var.get())},
-                          ">":{"shade_min":np.float64(self.entry1_var.get())}, }
+            bounds_dict = {"<": {"shade_max": np.float64(self.entry1_var.get())},
+                           "≤": {"shade_max": np.float64(self.entry1_var.get())},
+                           "≥": {"shade_min": np.float64(self.entry1_var.get())},
+                           ">": {"shade_min": np.float64(self.entry1_var.get())}, }
             if self.combobox.get() in ["< <", "≤ ≤"]:
-                bounds_dict ={"< <":{"shade_min":np.float64(self.entry3_var.get()), "shade_max":np.float64(self.entry1_var.get())},
-                             "≤ ≤":{"shade_min":np.float64(self.entry3_var.get()), "shade_max":np.float64(self.entry1_var.get())}
-                             }
+                bounds_dict = {"< <": {"shade_min": np.float64(self.entry3_var.get()),
+                                       "shade_max": np.float64(self.entry1_var.get())},
+                               "≤ ≤": {"shade_min": np.float64(self.entry3_var.get()),
+                                       "shade_max": np.float64(self.entry1_var.get())}
+                               }
         self.shade_between(bounds_dict[self.combobox.get()])
-
 
 
 class ComboboxFrame(tk.Frame):
@@ -717,7 +739,8 @@ class ComboboxFrame(tk.Frame):
     latex_image : tk.PhotoImage
         The LaTeX image generated from the definition.
     """
-    def __init__(self, master:tk.Widget, on_change:callable)->None:
+
+    def __init__(self, master: tk.Widget, on_change: callable) -> None:
         """
         Initialises the ComboboxFrame widget.
 
@@ -731,25 +754,24 @@ class ComboboxFrame(tk.Frame):
         super().__init__(master)
         self.grid_propagate(False)
 
-
         self.on_change = on_change
-        self.combobox=ttk.Combobox(self, values=[])
-        self.definition=tk.Label(self,)
+        self.combobox = ttk.Combobox(self, values=[])
+        self.definition = tk.Label(self, )
 
-        self.latex_image=None
+        self.latex_image = None
 
         self.combobox.bind('<<ComboboxSelected>>', self.callback)
 
         self.place_widgets()
 
-    def place_widgets(self)->None:
+    def place_widgets(self) -> None:
         """
         Places the combobox and definition label widgets within the frame.
         """
         self.combobox.pack(side="top", pady=5)
-        self.definition.pack(side='top', pady=5,)
+        self.definition.pack(side='top', pady=5, )
 
-    def callback(self, _event:tk.Event=None)->None:
+    def callback(self, _event: tk.Event = None) -> None:
         """
         Callback function that is called when the combobox selection changes.
 
@@ -760,7 +782,7 @@ class ComboboxFrame(tk.Frame):
         """
         self.on_change(self.combobox.get())
 
-    def set_definition(self, definition:str)->None:
+    def set_definition(self, definition: str) -> None:
         """
         Sets the definition to be displayed in the label.
 
@@ -775,7 +797,7 @@ class ComboboxFrame(tk.Frame):
         self.definition.config(image=self.latex_image)
         self.place_widgets()
 
-    def set_options(self, options:list[str])->None:
+    def set_options(self, options: list[str]) -> None:
         """
         Sets the options available in the combobox.
 
@@ -784,12 +806,15 @@ class ComboboxFrame(tk.Frame):
         options : list[str]
             The list of options to be displayed.
         """
-        self.combobox["values"]=options
+        self.combobox["values"] = options
         self.place_widgets()
 
-dice_dict={}
-size=(50,50)
-def get_dice_image(number:int)->Image.Image:
+
+dice_dict = {}
+size = (50, 50)
+
+
+def get_dice_image(number: int) -> Image.Image:
     """
     Returns dice image for the specified number.
 
@@ -824,7 +849,8 @@ class DiceRow(tk.Frame):
         A value to display next to the images
         Default is None
     """
-    def __init__(self, master:tk.Widget, dice_vals:list[int],row_val:float|int=None)->None:
+
+    def __init__(self, master: tk.Widget, dice_vals: list[int], row_val: float | int = None) -> None:
         """
         Initialises the DiceRow widget.
 
@@ -838,12 +864,12 @@ class DiceRow(tk.Frame):
             A value to display next to the images
         """
         super().__init__(master)
-        self.dice_vals=dice_vals
-        self.row_val=row_val
-        self.row_image=None
+        self.dice_vals = dice_vals
+        self.row_val = row_val
+        self.row_image = None
         self.create_row()
 
-    def create_row(self)->None:
+    def create_row(self) -> None:
         """
         Creates the visual layout for the dice row and optional value label.
         """
@@ -851,7 +877,7 @@ class DiceRow(tk.Frame):
         if not self.dice_vals:
             return
 
-        self.row_image=self.dice_row_image()
+        self.row_image = self.dice_row_image()
         tk.Label(self, image=self.row_image).pack(side="left")
         # for dice_val in self.dice_vals:
         #
@@ -862,7 +888,7 @@ class DiceRow(tk.Frame):
             value_label = tk.Label(self, text=f"{self.row_val:.2f}", font=("Arial", 14))
             value_label.pack(side="left", padx=5)
 
-    def dice_row_image(self)->tk.PhotoImage:
+    def dice_row_image(self) -> tk.PhotoImage:
         images = [get_dice_image(num) for num in self.dice_vals]
         width = sum([img.width for img in images])
         height = max([img.height for img in images])
@@ -873,8 +899,9 @@ class DiceRow(tk.Frame):
         for img in images:
             combined_image.paste(img, (x, 0))
             x += img.width
-        image=ImageTk.PhotoImage(combined_image)
+        image = ImageTk.PhotoImage(combined_image)
         return image
+
 
 class DiceCanvas(tk.Frame):
     """
@@ -894,7 +921,8 @@ class DiceCanvas(tk.Frame):
         A frame inside the canvas that contains DiceRow instances.
 
     """
-    def __init__(self, container_frame:tk.Frame, dice_vals_rows: list[tuple[list[int],int|float|None]])->None:
+
+    def __init__(self, container_frame: tk.Frame, dice_vals_rows: list[tuple[list[int], int | float | None]]) -> None:
         """
         Initialises the DiceCanvas widget.
 
@@ -908,13 +936,13 @@ class DiceCanvas(tk.Frame):
         super().__init__(container_frame)
         self.grid_propagate(False)
 
-        self.dice_vals_rows=dice_vals_rows
-        self.canvas=tk.Canvas(self)
+        self.dice_vals_rows = dice_vals_rows
+        self.canvas = tk.Canvas(self)
         self.y_scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.x_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
-        self.scrollable_frame.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
 
@@ -922,7 +950,7 @@ class DiceCanvas(tk.Frame):
 
         self.place_widgets()
 
-    def place_widgets(self)->None:
+    def place_widgets(self) -> None:
         """
         Places the canvas, scrollbars, and rows of dice within the parent widget.
         """
@@ -933,21 +961,16 @@ class DiceCanvas(tk.Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        c=0
+        c = 0
         for dice_vals_row in self.dice_vals_rows:
-            vals=dice_vals_row[0]
-            c+=len(vals)
-            num=dice_vals_row[1]
-            if c>=100:
+            vals = dice_vals_row[0]
+            c += len(vals)
+            num = dice_vals_row[1]
+            if c >= 100:
                 tk.Label(self.scrollable_frame, text="only 100 are rendered due to processing power",
                          font=("Arial", 10), fg="red").pack(side="top", anchor="nw")
                 break
-            DiceRow(self.scrollable_frame, vals,num).pack(side="top", anchor="nw")
-
-
-
-
-
+            DiceRow(self.scrollable_frame, vals, num).pack(side="top", anchor="nw")
 
 
 # output_str=""
@@ -960,7 +983,7 @@ class DiceCanvas(tk.Frame):
 # print("\n".join(["   ║   ".join(line_parts) for line_parts in zip(output_str.split("\n"),score_str.split("\n"))]))
 
 class DiceWindow(tk.Toplevel):
-    def __init__(self,master:tk.Tk, dice_vals_rows: list[tuple[list[int],int|float|None]]):
+    def __init__(self, master: tk.Tk, dice_vals_rows: list[tuple[list[int], int | float | None]]):
         """
         Initialises the DiceWindow widget.
 
@@ -979,6 +1002,7 @@ class DiceWindow(tk.Toplevel):
         dice_canvas = DiceCanvas(self, dice_vals_rows)
         dice_canvas.pack(fill="both", expand=True)
 
+
 class ModeMenu:
     """
     A menu for selecting and changing modes.
@@ -996,7 +1020,8 @@ class ModeMenu:
     menubar : tk.Menu
         The tkinter menubar widget for the application
     """
-    def __init__(self, root:tk.Tk,mode:str,callback:callable)->None:
+
+    def __init__(self, root: tk.Tk, mode: str, callback: callable) -> None:
         """
         Initialises the ModeMenu widget.
         Parameters
@@ -1008,10 +1033,10 @@ class ModeMenu:
         callback : callable
             The callback function to be called when the mode is changed.
         """
-        self.current_mode=mode
-        self.title_dict={"Dis":"Distribution Calculation",
-                         "Dice":"Dice Simulation",
-                         "Piece":"Piecewise Distribution"}
+        self.current_mode = mode
+        self.title_dict = {"Dist": "Distribution Calculation",
+                           "Dice": "Dice Simulation",
+                           "Piece": "Piecewise Distribution"}
 
         self.root = root
         self.root.title(self.title_dict[mode])
@@ -1021,56 +1046,55 @@ class ModeMenu:
         self.create_help_menu()
         self.root.configure(menu=self.menubar)
 
-    def create_mode_menu(self)->None:
+    def create_mode_menu(self) -> None:
         """
         Create the mode menu and add required commands to the menubar.
         """
         mode_menu = tk.Menu(self.menubar, tearoff=0)
-        mode_menu.add_command(label="Distribution Calculation", command=lambda: self.mode_callback("Dis"))
+        mode_menu.add_command(label="Distribution Calculation", command=lambda: self.mode_callback("Dist"))
         mode_menu.add_command(label="Dice Simulation", command=lambda: self.mode_callback("Dice"))
         mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.mode_callback("Piece"))
         mode_menu.add_separator()
 
-        game_menu=tk.Menu(mode_menu, tearoff=0)
+        game_menu = tk.Menu(mode_menu, tearoff=0)
         game_menu.add_command(label="", command=lambda: self.open_game(0))
-        game_menu.add_command(label="",command=lambda: self.open_game(1))
+        game_menu.add_command(label="", command=lambda: self.open_game(1))
         mode_menu.add_cascade(label="", menu=game_menu)
         self.menubar.add_cascade(label="Mode", menu=mode_menu)
 
-    def create_help_menu(self)->None:
+    def create_help_menu(self) -> None:
         """
         Create the help menu and add required commands to the menubar.
         """
         help_menu = tk.Menu(self.menubar, tearoff=0)
 
-        distribution_menu=tk.Menu(help_menu, tearoff=0)
-        distribution_menu.add_command(label="Normal", command=lambda: self.help_callback("Dis","Normal"))
-        distribution_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dis","Geometric"))
-        distribution_menu.add_command(label="Binomial", command=lambda: self.help_callback("Dis","Binomial"))
-        distribution_menu.add_command(label="Exponential",command=lambda: self.help_callback("Dis","Exponential"))
-        distribution_menu.add_command(label="Poisson",command=lambda: self.help_callback("Dis","Poisson"))
+        distribution_menu = tk.Menu(help_menu, tearoff=0)
+        distribution_menu.add_command(label="Normal", command=lambda: self.help_callback("Dist", "Normal"))
+        distribution_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dist", "Geometric"))
+        distribution_menu.add_command(label="Binomial", command=lambda: self.help_callback("Dist", "Binomial"))
+        distribution_menu.add_command(label="Exponential", command=lambda: self.help_callback("Dist", "Exponential"))
+        distribution_menu.add_command(label="Poisson", command=lambda: self.help_callback("Dist", "Poisson"))
         help_menu.add_cascade(label="Distribution Calculation", menu=distribution_menu)
 
-        dice_menu=tk.Menu(help_menu, tearoff=0)
-        dice_menu.add_command(label="'Normal'", command=lambda: self.help_callback("Dice","'Normal'"))
-        dice_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dice","Geometric"))
-        dice_menu.add_command(label="'Binomial'", command=lambda: self.help_callback("Dice","Binomial"))
+        dice_menu = tk.Menu(help_menu, tearoff=0)
+        dice_menu.add_command(label="'Normal'", command=lambda: self.help_callback("Dice", "'Normal'"))
+        dice_menu.add_command(label="Geometric", command=lambda: self.help_callback("Dice", "Geometric"))
+        dice_menu.add_command(label="'Binomial'", command=lambda: self.help_callback("Dice", "Binomial"))
         help_menu.add_cascade(label="Dice Simulation", menu=dice_menu)
 
-        piecewise_menu=tk.Menu(help_menu, tearoff=0)
-        piecewise_menu.add_command(label="Piecewise", command=lambda: self.help_callback("Piece","Piecewise"))
+        piecewise_menu = tk.Menu(help_menu, tearoff=0)
+        piecewise_menu.add_command(label="Piecewise", command=lambda: self.help_callback("Piece", "Piecewise"))
         help_menu.add_cascade(label="Piecewise Distribution", menu=piecewise_menu)
 
         help_menu.add_separator()
-        game_menu=tk.Menu(help_menu, tearoff=0)
-        game_menu.add_command(label="",command=lambda: self.help_callback("N","A")) # Not Applicable
-        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N")) #Applicable Not
+        game_menu = tk.Menu(help_menu, tearoff=0)
+        game_menu.add_command(label="", command=lambda: self.help_callback("N", "A"))  # Not Applicable
+        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N"))  #Applicable Not
         help_menu.add_cascade(label="", menu=game_menu)
-
 
         self.menubar.add_cascade(label="Help", menu=help_menu)
 
-    def help_callback(self,mode:str,dist_type:str)->None:
+    def help_callback(self, mode: str, dist_type: str) -> None:
         """
         Callback function that creates and opens a new help window.
 
@@ -1081,20 +1105,20 @@ class ModeMenu:
         dist_type : str
             The distribution type to help with.
         """
-        help_window = HelpWindow(self.root,f"help_{mode}_{dist_type}")
-        if mode not in ["N","A"]:
+        help_window = HelpWindow(self.root, f"help_{mode}_{dist_type}")
+        if mode not in ["N", "A"]:
             help_window.title(f"Help for {self.title_dict[mode]}, {dist_type}")
         else:
             help_window.title("THE GAME")
         help_window.geometry("600x400")
-        help_window.resizable(False,False)
+        help_window.resizable(False, False)
 
-    def open_game(self,number)->None:
+    def open_game(self, number) -> None:
         """
         Callback function that creates and opens a new game window.
         """
         game_window = tk.Toplevel(self.root)
-        if number==0:
+        if number == 0:
             the_view = GameView(game_window)
             controller = GameController(the_view)
             game_window.geometry("600x400")
@@ -1106,7 +1130,7 @@ class ModeMenu:
         game_window.resizable(False, False)
         game_window.title("Calculation Game")
 
-    def mode_callback(self, mode:str)->None:
+    def mode_callback(self, mode: str) -> None:
         """
         Callback function that changes the current mode and updates the window title.
 
@@ -1115,10 +1139,11 @@ class ModeMenu:
         mode : str
             The new mode to set
         """
-        if mode!=self.current_mode:
-            self.current_mode=mode
+        if mode != self.current_mode:
+            self.current_mode = mode
             self.root.title(self.title_dict[mode])
             self.callback(mode)
+
 
 class HelpWindow(tk.Toplevel):
     """
@@ -1140,7 +1165,7 @@ class HelpWindow(tk.Toplevel):
         The label that displays the provided text.
     """
 
-    def __init__(self, root:tk.Tk, help_file_name:str)->None:
+    def __init__(self, root: tk.Tk, help_file_name: str) -> None:
         """
         Initialises a new HelpWindow.
 
@@ -1154,15 +1179,16 @@ class HelpWindow(tk.Toplevel):
         super().__init__(root)
         self.grid_propagate(False)
 
-        self.canvas=tk.Canvas(self)
+        self.canvas = tk.Canvas(self)
         self.y_scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.x_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
-        self.help_file_name=help_file_name
-        self.label = tk.Label(self.scrollable_frame, text=self.get_help_text(),font=("Courier", 10), justify="left", anchor="nw")
+        self.help_file_name = help_file_name
+        self.label = tk.Label(self.scrollable_frame, text=self.get_help_text(), font=("Courier", 10), justify="left",
+                              anchor="nw")
 
-        self.scrollable_frame.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
 
@@ -1170,7 +1196,7 @@ class HelpWindow(tk.Toplevel):
 
         self.place_widgets()
 
-    def place_widgets(self)->None:
+    def place_widgets(self) -> None:
         """
         Places the canvas, scrollbars, and text within the new window using a grid layout.
         """
@@ -1181,9 +1207,9 @@ class HelpWindow(tk.Toplevel):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.label.pack(side="top", anchor="nw",fill="both", expand=True)
+        self.label.pack(side="top", anchor="nw", fill="both", expand=True)
 
-    def get_help_text(self)->str:
+    def get_help_text(self) -> str:
         """
         Gets the help text for the desired help window.
 
@@ -1192,17 +1218,12 @@ class HelpWindow(tk.Toplevel):
         str
             the help text for the desired help window.
         """
-        with open(f"assets/help/{self.help_file_name}.txt","r",encoding="utf-8") as file:
+        with open(f"assets/help/{self.help_file_name}.txt", "r", encoding="utf-8") as file:
             return file.read()
+
 
 if __name__ == "__main__":
     the_root = tk.Tk()
     the_root.geometry("900x600")
 
-
-
-
-
-
     the_root.mainloop()
-

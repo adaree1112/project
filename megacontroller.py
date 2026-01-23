@@ -19,7 +19,7 @@ class MEGAController:
         The model object that holds the parameters and calculates values.
     mode : str
         The current mode of the controller.
-        "Dis" | "Dice" | "Piece"
+        "Dist" | "Dice" | "Piece"
     piecewise_type : str
         The type of piecewise interpolation to use.
         "Cubic Splines" | "Linear"
@@ -36,7 +36,7 @@ class MEGAController:
         Parameters
         ----------
         view: 'View'
-            The view object hich is used to interact with the UI.
+            The view object which is used to interact with the UI.
         """
         self.view = view
         self.menubar = None
@@ -70,7 +70,7 @@ class MEGAController:
         settings_kwargs={}
         graph_args=[]
         match self.mode:
-            case "Dis":
+            case "Dist":
                 match dist_type:
                     case "Normal":
                         latex = r"$X \sim N(\mu, \sigma^2)$"
@@ -177,7 +177,7 @@ class MEGAController:
                 self.model.add_dice_row(n=self.model.parameters["num"].value - self.model.get_n_dice_row())
                 graph_args = self.model.get_plot_data(self.show_real)
                 self.view.update_dice_or_calc("dice", self.model.get_dice_data())
-            case "Dis":
+            case "Dist":
                 x_vals, y_vals, graph_type, cdf_func = self.model.get_plot_data()
                 graph_args = [x_vals, y_vals, graph_type]
                 graph_kwargs = {"cdf_func": cdf_func, **self.shade_dict}
@@ -208,10 +208,10 @@ class MEGAController:
         ----------
         mode:str
             The new mode
-            "Dis" | "Dice" | Piece"
+            "Dist" | "Dice" | Piece"
         """
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dis":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
                  "Piece":["Piecewise"],
                  }
         self.mode = mode
@@ -409,7 +409,7 @@ class View(tk.Frame):
         match mode:
             case "Dice":
                 self.settings = DicetributionSettingsFrame(self, *args, **kwargs)
-            case "Dis":
+            case "Dist":
                 self.settings = DistributionSettingsFrame(self, *args, **kwargs)
             case "Piece":
                 self.settings = PiecewiseSettingsFrame(self, *args, **kwargs)
@@ -430,7 +430,7 @@ class View(tk.Frame):
         match mode:
             case "Dice":
                 self.graph=DicetributionGraph(self)
-            case "Dis":
+            case "Dist":
                 self.graph=DistributionGraph(self)
             case "Piece":
                 self.graph=PiecewiseGraph(self,*args,**kwargs)
@@ -459,7 +459,7 @@ class View(tk.Frame):
         Parameters
         ----------
         *args,*kwargs : optional
-            Additional arguments passed straight to the graph updator.
+            Additional arguments passed straight to the graph updater.
         """
         self.graph.update_plot(*args,**kwargs)
 
@@ -501,7 +501,7 @@ class View(tk.Frame):
         """
 
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dis":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
                  "Piece":["Piecewise"],
                  }
         mode_menu = ModeMenu(master, self.controller.mode, self.controller.set_mode)
@@ -514,7 +514,7 @@ if __name__ == '__main__':
     the_root = tk.Tk()
     the_root.geometry("900x600")
 
-    the_controller = MEGAController(None,"Dis")
+    the_controller = MEGAController(None,"Dist")
     the_view = View(the_root, the_controller)
     the_view.pack(fill="both", expand=True)
     the_root.resizable(False,False)
