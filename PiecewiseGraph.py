@@ -80,7 +80,7 @@ class PiecewiseGraph(tk.Frame):
         ----------
         points : list of tuple of float
             A list of points (x,y) to plot as red dots.
-        pieces : list of ndarray
+        pieces : list of np.ndarray
             A list of arrays representing cubic splines for each interval.
             Each array has the form [x1,x2,a,b,c,d].
             This represents the equation f(x) = a*x^3 + b*x^2 + c*x + d over the range [x1,x2]
@@ -638,7 +638,7 @@ class CalculationFrame(tk.Frame):
             a = 0
         x = np.float64(self.entry1_var.get())
         b = x
-        pdict = {"<": self.model.pxlessthan(x),
+        p_dict = {"<": self.model.pxlessthan(x),
                  "≤": self.model.pxlessthanequalto(x),
                  "=": self.model.pxequals(x),
                  "≥": self.model.pxgreaterthanequalto(x),
@@ -646,7 +646,7 @@ class CalculationFrame(tk.Frame):
                  "< <": self.model.pxexclusivein(a, b),
                  "≤ ≤": self.model.pxinclusivein(a, b),
                  }
-        self.entry2_var.set(f"{pdict[self.combobox.get()]:.4f}")
+        self.entry2_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         self.update_shading()
 
     def entry2_updating(self, _event: tk.Event = None) -> None:
@@ -660,12 +660,12 @@ class CalculationFrame(tk.Frame):
         """
         p = np.float64(self.entry2_var.get())
         if self.combobox.get() not in ["< <", "≤ ≤"]:
-            pdict = {"<": self.model.xplessthan(p),
+            p_dict = {"<": self.model.xplessthan(p),
                      "≤": self.model.xplessthanequalto(p),
                      "≥": self.model.xpgreaterthanequalto(p),
                      ">": self.model.xpgreaterthan(p),
                      }
-            self.entry1_var.set(f"{pdict[self.combobox.get()]:.4f}")
+            self.entry1_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         else:
             a, b = self.model.xpexclusivein(p)
             self.entry1_var.set(f"{b:.4f}")
@@ -685,10 +685,10 @@ class CalculationFrame(tk.Frame):
         """
         a = np.float64(self.entry3_var.get())
         b = np.float64(self.entry1_var.get())
-        pdict = {"< <": self.model.pxexclusivein(a, b),
+        p_dict = {"< <": self.model.pxexclusivein(a, b),
                  "≤ ≤": self.model.pxinclusivein(a, b),
                  }
-        self.entry2_var.set(f"{pdict[self.combobox.get()]:.4f}")
+        self.entry2_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         self.update_shading()
 
     def update_shading(self) -> None:
@@ -1120,11 +1120,11 @@ class ModeMenu:
         game_window = tk.Toplevel(self.root)
         if number == 0:
             the_view = GameView(game_window)
-            controller = GameController(the_view)
+            _controller = GameController(the_view)
             game_window.geometry("600x400")
         else:
             the_view = TOtherGameView(game_window)
-            controller = TOtherGameController(the_view)
+            _controller = TOtherGameController(the_view)
             game_window.geometry("300x500")
         the_view.pack(expand=True, fill='both')
         game_window.resizable(False, False)
