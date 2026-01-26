@@ -16,8 +16,10 @@ def merge(left, right, key):
     out = []
     while l < len(left) and r < len(right):
         out.append(left[l] if key(left[l]) < key(right[r]) else right[r])
-        l += key(left[l]) < key(right[r])
-        r += not (key(left[l - 1]) < key(right[r - 1]))
+        if key(left[l]) < key(right[r]):
+            l+=1
+        else:
+            r+=1
     return out + left[l:] + right[r:]
 
 
