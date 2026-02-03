@@ -1,7 +1,8 @@
 import tkinter as tk
 
 from LabelSpinbox import TwoLabels
-from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice,NormDice, BinDice
+from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice, NormDice, \
+    BinDice, ChiSquared
 from PiecewiseGraph import ComboboxFrame,DistributionSettingsFrame, DistributionGraph, DicetributionGraph,DicetributionSettingsFrame, DiceCanvas, ModeMenu,PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
 
 
@@ -69,36 +70,38 @@ class MEGAController:
         settings_args=[]
         settings_kwargs={}
         graph_args=[]
+        self.shade_dict={"shade_min":None, "shade_max":None}
         match self.mode:
             case "Dist":
+                params = {}
                 match dist_type:
                     case "Normal":
                         latex = r"$X \sim N(\mu, \sigma^2)$"
                         params = {"mu": Parameter("μ", -999, 999, 0.1, 0),
                                   "sigma": Parameter("σ", 0.1, 999, 0.1, 1)}
                         self.model = Normal(params)
-                        settings_args = [params, self.refresh]
                     case "Binomial":
                         latex = r"$X \sim B(n, p)$"
                         params = {"n": Parameter("n", 1, 999, 1, 10),
                                   "p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Binomial(params)
-                        settings_args = [params, self.refresh]
                     case "Exponential":
                         latex = r"$X \sim \text{Exp}(\lambda)$"
                         params = {"lambda": Parameter("λ", 0, 999, .1, 5)}
                         self.model = Exponential(params)
-                        settings_args = [params, self.refresh]
                     case "Poisson":
                         latex = r"$X \sim \text{Poi}(\lambda)$"
                         params = {"lambda": Parameter("λ", 0, 999, .1, 5)}
                         self.model = Poisson(params)
-                        settings_args = [params, self.refresh]
                     case "Geometric":
                         latex = r"$X \sim \text{Geo}(p)$"
                         params = {"p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Geometric(params)
-                        settings_args = [params, self.refresh]
+                    case "Chi Squared":
+                        latex=r"$X \sim \chi_\nu^2$"
+                        params = {"nu": Parameter("𝜈", 1, 99, 1, 1)}
+                        self.model=ChiSquared(params)
+                settings_args = [params, self.refresh]
             case "Dice":
                 match dist_type:
                     case "Geometric":
@@ -211,7 +214,7 @@ class MEGAController:
             "Dist" | "Dice" | Piece"
         """
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric","Chi Squared"],
                  "Piece":["Piecewise"],
                  }
         self.mode = mode
@@ -501,7 +504,7 @@ class View(tk.Frame):
         """
 
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric","Chi Squared"],
                  "Piece":["Piecewise"],
                  }
         mode_menu = ModeMenu(master, self.controller.mode, self.controller.set_mode)

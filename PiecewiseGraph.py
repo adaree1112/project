@@ -486,7 +486,7 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.remove_button.pack(side="top", expand=True, fill="x")
         self.normalise_button.pack(side="top", expand=True, fill="x")
 
-
+#TODO FIX ME
 class CalculationFrame(tk.Frame):
     """
     A Frame widget for managing the calculations.
@@ -609,17 +609,15 @@ class CalculationFrame(tk.Frame):
         _event : tk.Event
             Unused additional arguments for the event handler.
         """
-        try:
-            self.entry1_updating()
-            self.label1_b_var.set(str(self.combobox.get())[0] + "X")
-            self.entry2.config(state="normal")
-            if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <",
-                                                                                 "≤ ≤"]) or self.combobox.get() == "=":
-                self.entry2.config(state="disabled")
-            self.place_widgets()
-            self.update_shading()
-        except ValueError:
-            pass
+        self.entry1_updating()
+        self.label1_b_var.set(str(self.combobox.get())[0] + "X")
+        self.entry2.config(state="normal")
+        if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <",
+                                                                             "≤ ≤"]) or self.combobox.get() == "=":
+            self.entry2.config(state="disabled")
+        self.place_widgets()
+        self.update_shading()
+
 
     def entry1_updating(self, _event: tk.Event = None) -> None:
         """
