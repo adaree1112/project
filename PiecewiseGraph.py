@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import os
 
 import numpy as np
 from PIL import Image, ImageTk
@@ -585,7 +586,9 @@ class CalculationFrame(tk.Frame):
         """
         for widget in self.winfo_children():
             widget.pack_forget()
+
         if self.combobox.get() not in ["< <", "≤ ≤"]:
+            print("hello")
             self.label1.pack(side="left")
             self.combobox.pack(side="left")
         else:
@@ -609,11 +612,18 @@ class CalculationFrame(tk.Frame):
         _event : tk.Event
             Unused additional arguments for the event handler.
         """
-        self.entry1_updating()
-        self.label1_b_var.set(str(self.combobox.get())[0] + "X")
+        try:
+            self.entry1_updating()
+        except ValueError:
+            pass
+
+        try:
+            self.label1_b_var.set(str(self.combobox.get())[0] + "X")
+        except IndexError:
+            pass
+
         self.entry2.config(state="normal")
-        if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <",
-                                                                             "≤ ≤"]) or self.combobox.get() == "=":
+        if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <","≤ ≤"]) or self.combobox.get() == "=":
             self.entry2.config(state="disabled")
         self.place_widgets()
         self.update_shading()
@@ -1216,12 +1226,16 @@ class HelpWindow(tk.Toplevel):
         str
             the help text for the desired help window.
         """
-        with open(f"assets/help/{self.help_file_name}.txt", "r", encoding="utf-8") as file:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_dir, "assets", "help", f"{self.help_file_name}.txt")
+
+        with open(file_path, "r", encoding="utf-8") as file:
             return file.read()
 
 
 if __name__ == "__main__":
     the_root = tk.Tk()
     the_root.geometry("900x600")
-
+    calc=CalculationFrame(the_root,None,lambda x,y:print(x,y))
+    calc.pack()
     the_root.mainloop()

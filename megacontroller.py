@@ -98,7 +98,7 @@ class MEGAController:
                         params = {"p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Geometric(params)
                     case "Chi Squared":
-                        latex=r"$X \sim \chi_\nu^2$"
+                        latex=r"$\chi_\nu^2 \sim Z_1^2 +...+ Z_\nu^2$" #"$X \sim \chi_\nu^2$"
                         params = {"nu": Parameter("𝜈", 1, 99, 1, 1)}
                         self.model=ChiSquared(params)
                 settings_args = [params, self.refresh]
@@ -162,6 +162,7 @@ class MEGAController:
             A flag indicating whether to overlay real values on the graph
             Also indicates whether to show the real E(X) and Var(X)
         """
+
         if success_vals is not None:
             self.model.success_vals = success_vals
         if show_real is not None:
@@ -184,6 +185,7 @@ class MEGAController:
                 x_vals, y_vals, graph_type, cdf_func = self.model.get_plot_data()
                 graph_args = [x_vals, y_vals, graph_type]
                 graph_kwargs = {"cdf_func": cdf_func, **self.shade_dict}
+                self.view.refresh_calc()
             case "Piece":
                 points = self.model.get_points()
                 self.model.calculate_pieces(linear=(self.piecewise_type == "Linear"))
@@ -465,6 +467,9 @@ class View(tk.Frame):
             Additional arguments passed straight to the graph updater.
         """
         self.graph.update_plot(*args,**kwargs)
+
+    def refresh_calc(self):
+        self.dice_or_calc.e1_updating()
 
 
     def update_dice_or_calc(self,mode:str,*args)->None:
