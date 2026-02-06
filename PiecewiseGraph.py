@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from numpy import ndarray
 
-from Piecewise import Piecewise, AbstractStatisticalModel, Normal
+from Piecewise import Piecewise, AbstractStatisticalModel, Normal, Exponential
 from DraggablePoint import DraggablePoint
 from LaTeXformulaimage import latex_to_tk_image
 from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
@@ -257,7 +257,20 @@ class DistributionGraph(tk.Frame):
             self.ax.set_xlim(right=max(x_vals), left=min(x_vals))
             if shade_min is not None and shade_max is not None:
                 mask = (x_vals >= shade_min) & (x_vals <= shade_max)
-                self.ax.fill_between(x_vals[mask], 0, y_vals[mask], color='green', alpha=0.5)
+                self.ax.fill_between(x_vals[mask], 0, y_vals[mask], color='green', alpha=0.25)
+                shade_min_y = np.interp(shade_min, x_vals, y_vals)
+                shade_max_y = np.interp(shade_max, x_vals, y_vals)
+
+                # dotted vertical lines up to the curve
+                self.ax.plot(
+                    [shade_min, shade_min], [0, shade_min_y],
+                    color='green', linestyle='--', linewidth=2
+                )
+                self.ax.plot(
+                    [shade_max, shade_max], [0, shade_max_y],
+                    color='green', linestyle='--', linewidth=2
+                )
+
 
             if show_cursors:
                 cursor = mplcursors.cursor(plot, hover=True)
@@ -550,25 +563,27 @@ class CalculationFrame(tk.Frame):
         self.model = model
         self.shade_between = shade_between
 
+        v_cmd=(self.register(lambda s: s in ["","-","."] or (isinstance(s, (int, float)) or (isinstance(s, str) and s.replace('.', '', 1).replace('-', '', 1).isdigit()))), '%P')
+
         self.label1 = tk.Label(self, text="P(X", width=2)
         self.combobox = ttk.Combobox(self, values=["<", "≤"] + ["="] * (
-            not (isinstance(self.model, Normal) or isinstance(self.model, Piecewise))) + ["≥", ">", "< <", "≤ ≤"],
+            not (isinstance(self.model, Exponential) or isinstance(self.model, Normal) or isinstance(self.model, Piecewise))) + ["≥", ">", "< <", "≤ ≤"],
                                      width=2)
 
         self.entry1_var = tk.StringVar()
         self.entry2_var = tk.StringVar()
         self.entry3_var = tk.StringVar()
 
-        self.entry1 = tk.Entry(self, width=6, textvariable=self.entry1_var)
+        self.entry1 = tk.Entry(self, width=6, textvariable=self.entry1_var,validatecommand=v_cmd, validate="key")
         self.label2 = tk.Label(self, text=")=", width=2)
-        self.entry2 = tk.Entry(self, width=6, textvariable=self.entry2_var)
+        self.entry2 = tk.Entry(self, width=6, textvariable=self.entry2_var,validatecommand=v_cmd, validate="key")
 
         self.label1_a = tk.Label(self, text="P(", width=2)
         self.label1_b_var = tk.StringVar(self)
         self.label1_b_var.set("X")
 
         self.label1_b = tk.Label(self, textvariable=self.label1_b_var, width=2)
-        self.entry3 = tk.Entry(self, width=6, textvariable=self.entry3_var)
+        self.entry3 = tk.Entry(self, width=6, textvariable=self.entry3_var,validatecommand=v_cmd, validate="key")
 
         self.entry1.bind('<KeyRelease>', self.entry1_updating)
         self.entry2.bind('<KeyRelease>', self.entry2_updating)
@@ -588,7 +603,6 @@ class CalculationFrame(tk.Frame):
             widget.pack_forget()
 
         if self.combobox.get() not in ["< <", "≤ ≤"]:
-            print("hello")
             self.label1.pack(side="left")
             self.combobox.pack(side="left")
         else:
@@ -626,7 +640,10 @@ class CalculationFrame(tk.Frame):
         if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <","≤ ≤"]) or self.combobox.get() == "=":
             self.entry2.config(state="disabled")
         self.place_widgets()
-        self.update_shading()
+        try:
+            self.update_shading()
+        except KeyError:
+            pass
 
 
     def entry1_updating(self, _event: tk.Event = None) -> None:
@@ -705,29 +722,38 @@ class CalculationFrame(tk.Frame):
 
         Adjusts the bounds dictionary depending on whether the model is discrete or continuous.
         """
+        try:
+            e1=np.float64(self.entry1_var.get())
+        except ValueError:
+            e1=0
+
+        try:
+            e3=np.float64(self.entry3_var.get())
+        except ValueError:
+            e3=0
         if self.model.is_discrete:
-            bounds_dict = {"<": {"shade_max": np.float64(self.entry1_var.get()) - 1},
-                           "≤": {"shade_max": np.float64(self.entry1_var.get())},
-                           "=": {"shade_min": np.float64(self.entry1_var.get()),
-                                 "shade_max": np.float64(self.entry1_var.get())},
-                           "≥": {"shade_min": np.float64(self.entry1_var.get())},
-                           ">": {"shade_min": np.float64(self.entry1_var.get()) + 1}}
+            bounds_dict = {"<": {"shade_max": e1 - 1},
+                           "≤": {"shade_max": e1},
+                           "=": {"shade_min": e1,
+                                 "shade_max": e1},
+                           "≥": {"shade_min": e1},
+                           ">": {"shade_min": e1}}
             if self.combobox.get() in ["< <", "≤ ≤"]:
-                bounds_dict = {"< <": {"shade_min": np.float64(self.entry3_var.get()) + 1,
-                                       "shade_max": np.float64(self.entry1_var.get()) - 1},
-                               "≤ ≤": {"shade_min": np.float64(self.entry3_var.get()),
-                                       "shade_max": np.float64(self.entry1_var.get())}
+                bounds_dict = {"< <": {"shade_min": e3 + 1,
+                                       "shade_max": e1 - 1},
+                               "≤ ≤": {"shade_min": e3,
+                                       "shade_max": e1}
                                }
         else:
-            bounds_dict = {"<": {"shade_max": np.float64(self.entry1_var.get())},
-                           "≤": {"shade_max": np.float64(self.entry1_var.get())},
-                           "≥": {"shade_min": np.float64(self.entry1_var.get())},
-                           ">": {"shade_min": np.float64(self.entry1_var.get())}, }
+            bounds_dict = {"<": {"shade_max": e1},
+                           "≤": {"shade_max": e1},
+                           "≥": {"shade_min": e1},
+                           ">": {"shade_min": e1}, }
             if self.combobox.get() in ["< <", "≤ ≤"]:
-                bounds_dict = {"< <": {"shade_min": np.float64(self.entry3_var.get()),
-                                       "shade_max": np.float64(self.entry1_var.get())},
-                               "≤ ≤": {"shade_min": np.float64(self.entry3_var.get()),
-                                       "shade_max": np.float64(self.entry1_var.get())}
+                bounds_dict = {"< <": {"shade_min": e3,
+                                       "shade_max": e1},
+                               "≤ ≤": {"shade_min": e3,
+                                       "shade_max": e1}
                                }
         self.shade_between(bounds_dict[self.combobox.get()])
 

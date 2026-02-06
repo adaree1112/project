@@ -1406,7 +1406,7 @@ class Geometric(AbstractStatisticalModel):
         -------
         float
         """
-        return 0
+        return 1
 
     @property
     def maxi(self)->float:

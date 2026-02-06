@@ -42,7 +42,7 @@ class MEGAController:
         self.view = view
         self.menubar = None
         self.mode=starting_mode
-
+        self._is_refreshing=False
         self.piecewise_type="Cubic Splines"
         self.show_real=False
         self.model=None
@@ -98,7 +98,7 @@ class MEGAController:
                         params = {"p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Geometric(params)
                     case "Chi Squared":
-                        latex=r"$\chi_\nu^2 \sim Z_1^2 +...+ Z_\nu^2$" #"$X \sim \chi_\nu^2$"
+                        latex=r"$\chi_\nu^2 \sim Z_1^2 +...+ Z_\nu^2$"+"\n"+r"$Z \sim \text{N}(0,1)$" #"$X \sim \chi_\nu^2$"
                         params = {"nu": Parameter("𝜈", 1, 99, 1, 1)}
                         self.model=ChiSquared(params)
                 settings_args = [params, self.refresh]
@@ -162,7 +162,10 @@ class MEGAController:
             A flag indicating whether to overlay real values on the graph
             Also indicates whether to show the real E(X) and Var(X)
         """
+        if self._is_refreshing:
+            return
 
+        self._is_refreshing = True
         if success_vals is not None:
             self.model.success_vals = success_vals
         if show_real is not None:
@@ -192,6 +195,7 @@ class MEGAController:
                 graph_args = [points, self.model.pieces,self.model.is_normalised]
                 graph_kwargs = {"cdf_func": self.model.cdf, **self.shade_dict}
         self.view.update_graph(*graph_args,**graph_kwargs)
+        self._is_refreshing=False
 
     def initialise_view(self,view:'View')->None:
         """
@@ -469,7 +473,10 @@ class View(tk.Frame):
         self.graph.update_plot(*args,**kwargs)
 
     def refresh_calc(self):
-        self.dice_or_calc.e1_updating()
+        try:
+            self.dice_or_calc.e1_updating()
+        except ValueError:
+            pass
 
 
     def update_dice_or_calc(self,mode:str,*args)->None:
