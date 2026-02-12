@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import math
-from scipy.special import comb
+from scipy.special import comb,gamma,gammainc
 
 from piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear, merge_sort
 
@@ -409,6 +409,7 @@ class Piecewise:
                 return np.array([self.pxlessthan(x) for x in x_vals])
             else:
                 return self.pxlessthan(x_vals)
+        return 0
 
     def pxlessthan(self, x:float)->float:
         """
@@ -425,6 +426,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.integrate_piecewise(u=x)
+        return 0
 
     @staticmethod
     def pxequals(x:float)->float:
@@ -444,6 +446,7 @@ class Piecewise:
         """
         if x:
             return 0
+        return 0
 
     def pxlessthanequalto(self, x:float)->float:
         """
@@ -462,6 +465,7 @@ class Piecewise:
         """
         if self.is_normalised:
            return self.pxlessthan(x)
+        return 0
 
     def pxgreaterthan(self, x:float)->float:
         """
@@ -478,6 +482,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return 1 - self.pxlessthan(x)
+        return 0
 
     def pxgreaterthanequalto(self, x:float)->float:
         """
@@ -496,6 +501,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.pxgreaterthan(x)
+        return 0
 
     def pxinclusivein(self, a:float, b:float)->float:
         """
@@ -513,6 +519,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.pxlessthan(b) - self.pxlessthan(a)
+        return 0
 
     def pxexclusivein(self, a:float, b:float)->float:
         """
@@ -532,6 +539,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.pxinclusivein(a, b)
+        return 0
 
     # FIND x from p
     def xplessthan(self, p:float)->float:
@@ -550,6 +558,7 @@ class Piecewise:
         if self.is_normalised:
             xs = [pt[0] for pt in self._points]
             return binary_search_for_x(p, min(xs), max(xs), self.pxlessthan)
+        return 0
 
     def xplessthanequalto(self, p:float)->float:
         """
@@ -568,6 +577,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.xplessthan(p)
+        return 0
 
     def xpgreaterthan(self, p:float)->float:
         """
@@ -584,6 +594,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.xplessthan(1 - p)
+        return 0
 
     def xpgreaterthanequalto(self, p:float)->float:
         """
@@ -600,6 +611,7 @@ class Piecewise:
         """
         if self.is_normalised:
             return self.xpgreaterthan(p)
+        return 0
 
     def xpinclusivein(self, p:float)->float:
         """
@@ -1394,7 +1406,7 @@ class Geometric(AbstractStatisticalModel):
         -------
         float
         """
-        return 0
+        return 1
 
     @property
     def maxi(self)->float:
@@ -1541,6 +1553,37 @@ class Exponential(AbstractStatisticalModel):
         lam = self.parameters["lambda"].value
         return lam ** -2
 
+
+class ChiSquared(AbstractStatisticalModel):
+    def __init__(self, parameters:dict=None)->None:
+        super().__init__(parameters, False)
+
+    @property
+    def mini(self) -> float:
+        return 0
+
+    @property
+    def maxi(self)->float:
+        return self.expectation() + 5 * self.variance() ** .5
+
+    def pdf(self, x:float|np.ndarray)->float|np.ndarray:
+        k=self.parameters["nu"].value
+        output = np.zeros_like(x)
+        mask = x>0
+        output[mask] = x[mask]**(k/2-1) * np.exp(-x[mask]/2)/2**(k/2)/gamma(k/2)
+        return output
+
+    def cdf(self,x:float|np.ndarray)->float|np.ndarray:
+        k=self.parameters["nu"].value
+        return gammainc(k/2,x/2)
+
+    def expectation(self)->float:
+        k=self.parameters["nu"].value
+        return k
+
+    def variance(self)->float:
+        k=self.parameters["nu"].value
+        return 2*k
 
 class Parameter:
     """

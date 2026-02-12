@@ -1,36 +1,26 @@
 import numpy as np
 
+
 def merge_sort(to_sort, key=lambda x: x):
-    if len(to_sort) == 1:
+    if len(to_sort) <= 1:
         return to_sort
+    mid = len(to_sort) // 2
+    left = merge_sort(to_sort[:mid], key=key)
+    right = merge_sort(to_sort[mid:], key=key)
 
-    middle = len(to_sort) // 2
-    left_half = to_sort[:middle]
-    right_half = to_sort[middle:]
-
-    left_half = merge_sort(left_half, key=key)
-    right_half = merge_sort(right_half, key=key)
-
-    return merge(left_half, right_half, key)
+    return merge(left, right, key)
 
 
 def merge(left, right, key):
-    result = []
-    l = 0
-    r = 0
-
+    l = r = 0;
+    out = []
     while l < len(left) and r < len(right):
+        out.append(left[l] if key(left[l]) < key(right[r]) else right[r])
         if key(left[l]) < key(right[r]):
-            result.append(left[l])
-            l += 1
-        else:  # priority to left if equal
-            result.append(right[r])
-            r += 1
-
-    result.extend(left[l:])
-    result.extend(right[r:])
-
-    return result
+            l+=1
+        else:
+            r+=1
+    return out + left[l:] + right[r:]
 
 
 def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.float64]])->list[np.ndarray]:
@@ -57,41 +47,41 @@ def piecewise_cubic_spline(points:list[tuple[float|int|np.float64,float|int|np.f
     ## f(X1) = y1, f(X2)=y2
     for i in range(n):
 
-        matrix[2*i,4*i+0] = points[i][0]**3
-        matrix[2*i,4*i+1] = points[i][0]**2
-        matrix[2*i,4*i+2] = points[i][0]**1
-        matrix[2*i,4*i+3] = points[i][0]**0
-        matb[2*i,0]=points[i][1]
+        matrix[2*i][4*i+0] = points[i][0]**3
+        matrix[2*i][4*i+1] = points[i][0]**2
+        matrix[2*i][4*i+2] = points[i][0]**1
+        matrix[2*i][4*i+3] = points[i][0]**0
+        matb[2*i][0]=points[i][1]
 
-        matrix[2*i+1,4*i+0] = points[i+1][0] ** 3
-        matrix[2*i+1,4*i+1] = points[i+1][0] ** 2
-        matrix[2*i+1,4*i+2] = points[i+1][0] ** 1
-        matrix[2*i+1,4*i+3] = points[i+1][0] ** 0
-        matb[2*i+1,0] = points[i+1][1]
+        matrix[2*i+1][4*i+0] = points[i+1][0] ** 3
+        matrix[2*i+1][4*i+1] = points[i+1][0] ** 2
+        matrix[2*i+1][4*i+2] = points[i+1][0] ** 1
+        matrix[2*i+1][4*i+3] = points[i+1][0] ** 0
+        matb[2*i+1][0] = points[i+1][1]
 
     ## f1'(x2)-f2'(x2)=0
     for i in range(n-1):
-        matrix[2*n+i,4*i+0] = 3*points[i+1][0]**2
-        matrix[2*n+i,4*i+1] = 2*points[i+1][0]**1
-        matrix[2*n+i,4*i+2] = 1*points[i+1][0]**0
+        matrix[2*n+i][4*i+0] = 3*points[i+1][0]**2
+        matrix[2*n+i][4*i+1] = 2*points[i+1][0]**1
+        matrix[2*n+i][4*i+2] = 1*points[i+1][0]**0
 
-        matrix[2*n+i,4*i+4] = -3*points[i+1][0]**2
-        matrix[2*n+i,4*i+5] = -2*points[i+1][0]**1
-        matrix[2*n+i,4*i+6] = -1*points[i+1][0]**0
+        matrix[2*n+i][4*i+4] = -3*points[i+1][0]**2
+        matrix[2*n+i][4*i+5] = -2*points[i+1][0]**1
+        matrix[2*n+i][4*i+6] = -1*points[i+1][0]**0
     ## f1''(x2)-f2''(x2)=0
     for i in range(n-1):
-        matrix[2*n+(n-1)+i,4*i+0] = 6*points[i+1][0]**1
-        matrix[2*n+(n-1)+i,4*i+1] = 2*points[i+1][0]**0
+        matrix[2*n+(n-1)+i][4*i+0] = 6*points[i+1][0]**1
+        matrix[2*n+(n-1)+i][4*i+1] = 2*points[i+1][0]**0
 
-        matrix[2*n+(n-1)+i,4*i+4] = -6*points[i+1][0]**1
-        matrix[2*n+(n-1)+i,4*i+5] = -2*points[i+1][0]**0
+        matrix[2*n+(n-1)+i][4*i+4] = -6*points[i+1][0]**1
+        matrix[2*n+(n-1)+i][4*i+5] = -2*points[i+1][0]**0
     #"""
     ## f1''(x1)=0
-    matrix[-2,0]=6*points[0][0]
-    matrix[-2,1]=2
+    matrix[-2][0]=6*points[0][0]
+    matrix[-2][1]=2
     ## f(n-1))''(x(n-1))=0
-    matrix[-1,-4]=6*points[-1][0]
-    matrix[-1,-3]=2
+    matrix[-1][-4]=6*points[-1][0]
+    matrix[-1][-3]=2
 
     coefficient_matrix=np.linalg.solve(matrix,matb)
     pieces=[np.array([points[i][0],points[i+1][0],coefficient_matrix[4*i][0],coefficient_matrix[4*i+1][0],coefficient_matrix[4*i+2][0],coefficient_matrix[4*i+3][0]])

@@ -1,6 +1,5 @@
 matplotlib~=3.10.3
 mplcursors
 scipy
-pytest
 Pillow
 numpy

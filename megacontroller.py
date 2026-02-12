@@ -1,7 +1,8 @@
 import tkinter as tk
 
 from LabelSpinbox import TwoLabels
-from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice,NormDice, BinDice
+from Piecewise import Parameter, Piecewise, Normal, Binomial, Exponential, Poisson, Geometric, GeoDice, NormDice, \
+    BinDice, ChiSquared
 from PiecewiseGraph import ComboboxFrame,DistributionSettingsFrame, DistributionGraph, DicetributionGraph,DicetributionSettingsFrame, DiceCanvas, ModeMenu,PiecewiseSettingsFrame, PiecewiseGraph, CalculationFrame
 
 
@@ -19,7 +20,7 @@ class MEGAController:
         The model object that holds the parameters and calculates values.
     mode : str
         The current mode of the controller.
-        "Dis" | "Dice" | "Piece"
+        "Dist" | "Dice" | "Piece"
     piecewise_type : str
         The type of piecewise interpolation to use.
         "Cubic Splines" | "Linear"
@@ -36,12 +37,12 @@ class MEGAController:
         Parameters
         ----------
         view: 'View'
-            The view object hich is used to interact with the UI.
+            The view object which is used to interact with the UI.
         """
         self.view = view
         self.menubar = None
         self.mode=starting_mode
-
+        self._is_refreshing=False
         self.piecewise_type="Cubic Splines"
         self.show_real=False
         self.model=None
@@ -69,36 +70,38 @@ class MEGAController:
         settings_args=[]
         settings_kwargs={}
         graph_args=[]
+        self.shade_dict={"shade_min":None, "shade_max":None}
         match self.mode:
-            case "Dis":
+            case "Dist":
+                params = {}
                 match dist_type:
                     case "Normal":
                         latex = r"$X \sim N(\mu, \sigma^2)$"
                         params = {"mu": Parameter("μ", -999, 999, 0.1, 0),
                                   "sigma": Parameter("σ", 0.1, 999, 0.1, 1)}
                         self.model = Normal(params)
-                        settings_args = [params, self.refresh]
                     case "Binomial":
                         latex = r"$X \sim B(n, p)$"
                         params = {"n": Parameter("n", 1, 999, 1, 10),
                                   "p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Binomial(params)
-                        settings_args = [params, self.refresh]
                     case "Exponential":
                         latex = r"$X \sim \text{Exp}(\lambda)$"
                         params = {"lambda": Parameter("λ", 0, 999, .1, 5)}
                         self.model = Exponential(params)
-                        settings_args = [params, self.refresh]
                     case "Poisson":
                         latex = r"$X \sim \text{Poi}(\lambda)$"
                         params = {"lambda": Parameter("λ", 0, 999, .1, 5)}
                         self.model = Poisson(params)
-                        settings_args = [params, self.refresh]
                     case "Geometric":
                         latex = r"$X \sim \text{Geo}(p)$"
                         params = {"p": Parameter("p", 0, 1, 0.01, 0.5)}
                         self.model = Geometric(params)
-                        settings_args = [params, self.refresh]
+                    case "Chi Squared":
+                        latex=r"$\chi_\nu^2 \sim Z_1^2 +...+ Z_\nu^2$"+"\n"+r"$Z \sim \text{N}(0,1)$" #"$X \sim \chi_\nu^2$"
+                        params = {"nu": Parameter("𝜈", 1, 99, 1, 1)}
+                        self.model=ChiSquared(params)
+                settings_args = [params, self.refresh]
             case "Dice":
                 match dist_type:
                     case "Geometric":
@@ -159,6 +162,10 @@ class MEGAController:
             A flag indicating whether to overlay real values on the graph
             Also indicates whether to show the real E(X) and Var(X)
         """
+        if self._is_refreshing:
+            return
+
+        self._is_refreshing = True
         if success_vals is not None:
             self.model.success_vals = success_vals
         if show_real is not None:
@@ -177,16 +184,18 @@ class MEGAController:
                 self.model.add_dice_row(n=self.model.parameters["num"].value - self.model.get_n_dice_row())
                 graph_args = self.model.get_plot_data(self.show_real)
                 self.view.update_dice_or_calc("dice", self.model.get_dice_data())
-            case "Dis":
+            case "Dist":
                 x_vals, y_vals, graph_type, cdf_func = self.model.get_plot_data()
                 graph_args = [x_vals, y_vals, graph_type]
                 graph_kwargs = {"cdf_func": cdf_func, **self.shade_dict}
+                self.view.refresh_calc()
             case "Piece":
                 points = self.model.get_points()
                 self.model.calculate_pieces(linear=(self.piecewise_type == "Linear"))
                 graph_args = [points, self.model.pieces,self.model.is_normalised]
                 graph_kwargs = {"cdf_func": self.model.cdf, **self.shade_dict}
         self.view.update_graph(*graph_args,**graph_kwargs)
+        self._is_refreshing=False
 
     def initialise_view(self,view:'View')->None:
         """
@@ -208,10 +217,10 @@ class MEGAController:
         ----------
         mode:str
             The new mode
-            "Dis" | "Dice" | Piece"
+            "Dist" | "Dice" | Piece"
         """
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dis":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric","Chi Squared"],
                  "Piece":["Piecewise"],
                  }
         self.mode = mode
@@ -409,7 +418,7 @@ class View(tk.Frame):
         match mode:
             case "Dice":
                 self.settings = DicetributionSettingsFrame(self, *args, **kwargs)
-            case "Dis":
+            case "Dist":
                 self.settings = DistributionSettingsFrame(self, *args, **kwargs)
             case "Piece":
                 self.settings = PiecewiseSettingsFrame(self, *args, **kwargs)
@@ -430,7 +439,7 @@ class View(tk.Frame):
         match mode:
             case "Dice":
                 self.graph=DicetributionGraph(self)
-            case "Dis":
+            case "Dist":
                 self.graph=DistributionGraph(self)
             case "Piece":
                 self.graph=PiecewiseGraph(self,*args,**kwargs)
@@ -459,9 +468,15 @@ class View(tk.Frame):
         Parameters
         ----------
         *args,*kwargs : optional
-            Additional arguments passed straight to the graph updator.
+            Additional arguments passed straight to the graph updater.
         """
         self.graph.update_plot(*args,**kwargs)
+
+    def refresh_calc(self):
+        try:
+            self.dice_or_calc.e1_updating()
+        except ValueError:
+            pass
 
 
     def update_dice_or_calc(self,mode:str,*args)->None:
@@ -501,7 +516,7 @@ class View(tk.Frame):
         """
 
         options={"Dice":["'Normal'", "Binomial", "Geometric"],
-                 "Dis":["Normal", "Binomial", "Exponential", "Poisson", "Geometric"],
+                 "Dist":["Normal", "Binomial", "Exponential", "Poisson", "Geometric","Chi Squared"],
                  "Piece":["Piecewise"],
                  }
         mode_menu = ModeMenu(master, self.controller.mode, self.controller.set_mode)
@@ -514,7 +529,7 @@ if __name__ == '__main__':
     the_root = tk.Tk()
     the_root.geometry("900x600")
 
-    the_controller = MEGAController(None,"Dis")
+    the_controller = MEGAController(None,"Dist")
     the_view = View(the_root, the_controller)
     the_view.pack(fill="both", expand=True)
     the_root.resizable(False,False)
