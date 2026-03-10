@@ -225,6 +225,13 @@ class Piecewise:
         """
         return len(self._points)
 
+    def check_for_point(self,point:tuple):
+        offset=(self.maxi-self.mini)/10
+        for pt in self._points:
+            if abs(point[0] - pt[0]) < offset and abs(point[1] - pt[1]) < offset:
+                return pt
+        return False
+
     def add_point(self, point : None|tuple[float,float] = None) -> None:
         """
         Add a control point to the Piecewise object.
@@ -238,8 +245,9 @@ class Piecewise:
         point : tuple of float, optional
             A specific (x, y) point to add.
         """
+        self.is_normalised = False
+
         if point is None:
-            self.is_normalised = False
             if not self._points:
                 self._points+=[(0, 0), (1, 1)]
             elif len(self._points) < 2:
@@ -253,9 +261,13 @@ class Piecewise:
                 new_y = random.uniform(0, max(curr_y))
                 self._points.append((new_x, new_y))
         else:
-            self._points.append(point)
+            if pt:=self.check_for_point(point):
+                self.remove_point(pt)
+            else:
+                self._points.append(point)
 
-    def remove_point(self)->None:
+
+    def remove_point(self,point=None)->None:
         """
         Remove a random control point.
 
@@ -264,7 +276,11 @@ class Piecewise:
         """
         self.is_normalised = False
         if len(self._points) > 2:
-            self._points.pop(random.randint(0, len(self._points) - 1))
+            if point is None:
+                self._points.pop(random.randint(0, len(self._points) - 1))
+            else:
+                self._points.remove(point)
+
 
     def calculate_pieces(self, linear:bool=False)->None:
         """
