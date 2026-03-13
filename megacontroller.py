@@ -40,7 +40,6 @@ class MEGAController:
             The view object which is used to interact with the UI.
         """
         self.view = view
-        self.menubar = None
         self.mode=starting_mode
         self._is_refreshing=False
         self.piecewise_type="Cubic Splines"

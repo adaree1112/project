@@ -1,0 +1,85 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class MEGAController {
+  + view: View
+  + mode: str
+  + piecewise_type: str
+  + show_real: bool
+  + shade_dict: dict
+  - _is_refreshing: bool
+  + model: AbstractStatisticalModel | AbstractDicetribution | Piecewise
+  --
+  + __init__(view, starting_mode)
+  + initialise_view(view: View)
+  + set_mode(mode: str)
+  + set_distribution(dist_type: str)
+  + shade_between(shade_dict: dict)
+  + refresh(success_vals: list[int], show_real: bool)
+  + set_piecewise_type(piecewise_type: str)
+  + point_moved(old_x: float, old_y: float, new_x: float, new_y: float)
+  + handle_add_point(point: tuple)
+  + handle_remove_point()
+  + handle_normalise()
+}
+
+class View {
+  + set_up_blank_view()
+  + set_options(options)
+  + set_definition(latex)
+  + set_settings(mode, *args, **kwargs)
+  + set_graph(mode, *args, **kwargs)
+  + update_e_and_var(labels, values)
+  + update_graph(*args, **kwargs)
+  + update_dice_or_calc(mode, *args)
+  + refresh_calc()
+  + initialise_view(view)
+}
+
+abstract class AbstractStatisticalModel {
+  + expectation(): float
+  + variance(): float
+  + get_plot_data(): tuple
+}
+
+abstract class AbstractDicetribution {
+  + success_vals: list[int]
+  + e_and_var(show_real): tuple
+  + get_plot_data(show_real): tuple
+  + get_dice_data(): list
+  + add_dice_row(n: int)
+  + get_n_dice_row(): int
+}
+
+class Piecewise {
+  + is_normalised: bool
+  + pieces: list
+  + calculate_pieces(linear: bool)
+  + get_points(): list
+  + update_point(old_x, old_y, new_x, new_y)
+  + add_point(point)
+  + remove_point()
+  + normalise()
+  + expectation(): float
+  + variance(): float
+  + cdf(x): float
+}
+
+MEGAController --> View : calls methods on
+MEGAController o-- AbstractStatisticalModel : model (Dist)
+MEGAController o-- AbstractDicetribution : model (Dice)
+MEGAController o-- Piecewise : model (Piece)
+
+AbstractStatisticalModel <|-- Normal
+AbstractStatisticalModel <|-- Binomial
+AbstractStatisticalModel <|-- Exponential
+AbstractStatisticalModel <|-- Poisson
+AbstractStatisticalModel <|-- Geometric
+AbstractStatisticalModel <|-- ChiSquared
+
+AbstractDicetribution <|-- GeoDice
+AbstractDicetribution <|-- BinDice
+AbstractDicetribution <|-- NormDice
+
+@enduml
