@@ -1,0 +1,36 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+}
+
+class Poisson {
+  + parameters: {lambda: Parameter}
+  + is_discrete: bool = True
+  --
+  + __init__(parameters: dict)
+  + mini: int {0}
+  + maxi: int {λ + 5√λ}
+  + pdf(x): float | ndarray
+  + expectation(): float {λ}
+  + variance(): float {λ}
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+object factorial {
+  math.factorial
+}
+
+AbstractStatisticalModel <|-- Poisson
+Poisson *-- Parameter : lambda
+Poisson ..> factorial : pdf()
+
+@enduml

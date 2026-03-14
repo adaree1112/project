@@ -1,0 +1,58 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractDicetribution {
+  + dice_data: list[list[Die]]
+  + parameters: dict[str, Parameter]
+  --
+  + __init__(parameters: dict)
+  + get_dice_row(): list[Die] {abstract}
+  + get_row_data(row: list[Die]): float {abstract}
+  + add_dice_row(n: int)
+  + remove_dice_row(n: int)
+  + set_n_dice_row(n: int)
+  + get_n_dice_row(): int
+  + get_dice_data(): list[tuple]
+  + get_plot_data(show_real: bool): tuple {abstract}
+  + e_and_var(show_real: bool): tuple {abstract}
+}
+
+class Die {
+  + num: int
+  --
+  + roll(): int
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+class GeoDice
+class BinDice
+class NormDice
+
+class Controller {
+  + model: AbstractDicetribution
+  --
+  + refresh()
+}
+
+class DiceCanvas {
+  --
+  + __init__(container_frame, dice_vals_rows)
+}
+
+AbstractDicetribution <|-- GeoDice
+AbstractDicetribution <|-- BinDice
+AbstractDicetribution <|-- NormDice
+
+AbstractDicetribution *-- Die : dice_data rows contain
+AbstractDicetribution *-- Parameter : parameters dict
+
+Controller o-- AbstractDicetribution : model (Dice mode)
+AbstractDicetribution --> DiceCanvas : get_dice_data() provides dice_vals_rows
+
+@enduml

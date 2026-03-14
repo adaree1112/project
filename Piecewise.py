@@ -156,6 +156,8 @@ class Piecewise:
     ----------
     is_discrete : bool
         Indicates whether the distribution is discrete (always False here).
+    _points : list of tuple of float
+        List of (x, y) points defining the function.
     is_normalised : bool
         Indicates whether the distribution is normalised.
     pieces : list
@@ -225,7 +227,22 @@ class Piecewise:
         """
         return len(self._points)
 
-    def check_for_point(self,point:tuple):
+    def check_for_point(self,point:tuple)->tuple[float, float]|bool:
+        """
+        Check if there is a point at the specified location. Return True if yes.
+
+        Parameters
+        ----------
+        point: tuple of float
+            point x and y coordinates to check.
+
+        Returns
+        -------
+        tuple[float, float]
+            the point that exists if a point exists.
+
+        False if not.
+        """
         offset=(self.maxi-self.mini)/10
         for pt in self._points:
             if abs(point[0] - pt[0]) < offset and abs(point[1] - pt[1]) < offset:
@@ -238,6 +255,7 @@ class Piecewise:
 
         If a point is provided, add that point to the list of control points.
         Otherwise, add a control point from within the current range of x and y values
+        If a point is already in that location, remove it
         Normalisation state is reset to false.
 
         Parameters
@@ -1116,7 +1134,9 @@ class Normal(AbstractStatisticalModel):
     Represents a Normal distribution.
 
     Attributes:
-        parameters (dict): Dictionary containing 'mu' (mean) and 'sigma' (standard deviation).
+    -----------
+    parameters : dict
+        Dictionary containing 'mu' (mean) and 'sigma' (standard deviation).
     """
     def __init__(self, parameters:dict=None)->None:
         """
@@ -1233,7 +1253,9 @@ class Binomial(AbstractStatisticalModel):
     Represents a Binomial distribution.
 
     Attributes:
-        parameters (dict): Dictionary containing 'n' (number of trials) and 'p' (success probability).
+    -----------
+    parameters : dict
+        Dictionary containing 'n' (number of trials) and 'p' (success probability).
     """
 
     def __init__(self, parameters:dict=None)->None:
@@ -1416,7 +1438,7 @@ class Geometric(AbstractStatisticalModel):
     @property
     def mini(self)->float:
         """
-        Lower bound for plotting or searching, 0.
+        Lower bound for plotting or searching, 1.
 
         Returns
         -------
@@ -1571,18 +1593,59 @@ class Exponential(AbstractStatisticalModel):
 
 
 class ChiSquared(AbstractStatisticalModel):
+    """
+    Represents a Chi-squared distribution.
+
+    Attributes:
+        parameters (dict): Dictionary containing 'nu' (Degrees of freedom).
+    """
     def __init__(self, parameters:dict=None)->None:
+        """
+        Initialise a Chi-squared distribution with given parameters.
+        Parameters
+        ----------
+        parameters : dict
+            Dictionary containing 'nu' (Degrees of freedom).
+        """
         super().__init__(parameters, False)
 
     @property
     def mini(self) -> float:
+        """
+        Lower bound for plotting or searching,0.
+        Returns
+        -------
+        float
+            0
+        """
         return 0
 
     @property
     def maxi(self)->float:
+        """
+        Upper bound for plotting or searching, 5 standard deviations above mean.
+        Returns
+        -------
+        float
+            upper bound
+        """
         return self.expectation() + 5 * self.variance() ** .5
 
     def pdf(self, x:float|np.ndarray)->float|np.ndarray:
+        """
+        Probability density function of the Chi-squared distribution.
+
+        Parameters
+        ----------
+        x : float or np.ndarray
+            Point(s) at which to evaluate the PDF.
+
+        Returns
+        -------
+        float or np.ndarray
+            Value(s) of the PDF at `x`.
+
+        """
         k=self.parameters["nu"].value
         output = np.zeros_like(x)
         mask = x>0
@@ -1590,14 +1653,43 @@ class ChiSquared(AbstractStatisticalModel):
         return output
 
     def cdf(self,x:float|np.ndarray)->float|np.ndarray:
+        """
+        Cumulative density function of the Chi-squared distribution.
+
+        Parameters
+        ----------
+        x : float or np.ndarray
+            Point(s) at which to evaluate the CDF.
+
+        Returns
+        -------
+        float or np.ndarray
+            Value(s) of the CDF at `x`.
+        """
         k=self.parameters["nu"].value
         return gammainc(k/2,x/2)
 
     def expectation(self)->float:
+        """
+        Mean (expected value) of the Chi-squared distribution.
+
+        Returns
+        -------
+        Int
+            Mean (expected value) of the Chi-squared distribution.
+        """
         k=self.parameters["nu"].value
         return k
 
     def variance(self)->float:
+        """
+        Variance of the Chi-squared distribution.
+
+        Returns
+        -------
+        int
+            Variance of the Chi-squared distribution.
+        """
         k=self.parameters["nu"].value
         return 2*k
 
@@ -1627,7 +1719,7 @@ class Parameter:
     """
     def __init__(self, label:str, minimum:float|int, maximum:float|int, step:float|int, default:float|int)->None:
         """
-            Initialize a Parameter instance.
+            Initialise a Parameter instance.
 
             Parameters
             ----------
@@ -2320,7 +2412,7 @@ class NormDice(AbstractDicetribution):
         -------
         float
             the mean value of the row
-        """""
+        """
         self._check_n_changed()
         return mean([die.num for die in row])
 

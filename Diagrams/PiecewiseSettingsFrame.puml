@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class PiecewiseSettingsFrame {
+  + radiobuttons: PairRadioButton
+  + add_button: tk.Button
+  + remove_button: tk.Button
+  + normalise_button: tk.Button
+  --
+  + __init__(master: tk.Widget, on_change: callable, add: callable, remove: callable, normalise: callable)
+  + place_widgets()
+}
+
+class PairRadioButton {
+  + options: list[str]
+  + v: tk.StringVar
+  --
+  + on_option_change()
+  + get(): str
+}
+
+class View {
+  + settings: tk.Frame
+  --
+  + set_settings(mode: str, *args, **kwargs)
+}
+
+class Controller {
+  --
+  + set_piecewise_type(piecewise_type: str)
+  + handle_add_point(point: tuple)
+  + handle_remove_point()
+  + handle_normalise()
+}
+
+View *-- PiecewiseSettingsFrame : settings (Piece mode)
+PiecewiseSettingsFrame *-- PairRadioButton : radiobuttons
+PiecewiseSettingsFrame --> Controller : on_change → set_piecewise_type()
+PiecewiseSettingsFrame --> Controller : add → handle_add_point()
+PiecewiseSettingsFrame --> Controller : remove → handle_remove_point()
+PiecewiseSettingsFrame --> Controller : normalise → handle_normalise()
+
+@enduml

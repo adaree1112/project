@@ -1,0 +1,32 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class PiecewiseGraph {
+  + controller: Controller
+  + add_point: callable
+  + fig: Figure
+  + ax: Axes
+  + canvas: FigureCanvasTkAgg
+  + draggable_points: list[DraggablePoint]
+  --
+  + __init__(master: tk.Widget, controller: object, add_point: callable)
+  + update_plot(points: list[tuple], pieces: list[ndarray], is_normalised: bool, cdf_func: callable, shade_min: float, shade_max: float, show_cursors: bool)
+  + add_point_on_click(event: tk.Event)
+}
+
+class DraggablePoint {
+  + __init__(coord: tuple, controller: object)
+  + attach(ax: Axes)
+}
+
+class Controller {
+  + handle_add_point(point: tuple)
+  + point_moved(old_x, old_y, new_x, new_y)
+}
+
+PiecewiseGraph *-- DraggablePoint : creates one per control point in update_plot()
+PiecewiseGraph --> Controller : add_point callback
+DraggablePoint --> Controller : on_release() calls point_moved()
+
+@enduml

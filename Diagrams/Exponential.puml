@@ -1,0 +1,34 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+  --
+  + cdf(x): float | ndarray
+}
+
+class Exponential {
+  + parameters: {lambda: Parameter}
+  + is_discrete: bool = False
+  --
+  + __init__(parameters: dict)
+  + mini: float {0}
+  + maxi: float {1/λ + 5/λ}
+  + pdf(x): float | ndarray {λ·e^(-λx)}
+  + cdf(x): float | ndarray {1 - e^(-λx) {overrides}}
+  + expectation(): float {1/λ}
+  + variance(): float {1/λ²}
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+AbstractStatisticalModel <|-- Exponential
+Exponential *-- Parameter : lambda
+
+@enduml

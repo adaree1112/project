@@ -1,0 +1,84 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict[str, Parameter]
+  + is_discrete: bool
+  --
+  + __init__(parameters: dict, is_discrete: bool)
+  + mini: float {abstract property}
+  + maxi: float {abstract property}
+  + pdf(x): float | ndarray {abstract}
+  + get_plot_data(): tuple[ndarray, ndarray, str, callable]
+  + get_parameters(): dict
+  + cdf(x): float | ndarray
+  + pxequals(x): float
+  + pxlessthan(x): float
+  + pxlessthanequalto(x): float
+  + pxgreaterthan(x): float
+  + pxgreaterthanequalto(x): float
+  + pxinclusivein(a, b): float
+  + pxexclusivein(a, b): float
+  + xplessthan(p): float
+  + xplessthanequalto(p): float
+  + xpgreaterthan(p): float
+  + xpgreaterthanequalto(p): float
+  + xpinclusivein(p): tuple {raises NotImplementedError}
+  + xpexclusivein(p): tuple {raises NotImplementedError}
+  + expectation(): float {abstract}
+  + variance(): float {abstract}
+}
+
+class Normal
+class Binomial
+class Poisson
+class Geometric
+class Exponential
+class ChiSquared
+
+class Parameter {
+  + label: str
+  + minimum, maximum, step, default: float
+  - _value: float
+  --
+  + value: float {property}
+  + validate(value): bool
+  + get_spinbox_args(): dict
+}
+
+class Controller {
+  + model: AbstractStatisticalModel
+  --
+  + refresh()
+}
+
+class CalculationFrame {
+  + model: AbstractStatisticalModel
+  --
+  + entry1_updating()
+  + entry2_updating()
+}
+
+class DistributionGraph {
+  --
+  + update_plot(x_vals, y_vals, graph_type, cdf_func, shade_min, shade_max, show_cursors)
+}
+
+object binary_search_for_x <<function>>
+
+AbstractStatisticalModel <|-- Normal
+AbstractStatisticalModel <|-- Binomial
+AbstractStatisticalModel <|-- Poisson
+AbstractStatisticalModel <|-- Geometric
+AbstractStatisticalModel <|-- Exponential
+AbstractStatisticalModel <|-- ChiSquared
+
+AbstractStatisticalModel *-- Parameter
+AbstractStatisticalModel ..> binary_search_for_x : xplessthan(), xpgreaterthan()
+
+Controller o-- AbstractStatisticalModel : model (Dist mode)
+CalculationFrame o-- AbstractStatisticalModel : model
+AbstractStatisticalModel --> DistributionGraph : get_plot_data() provides x_vals, y_vals, graph_type, cdf_func
+
+@enduml

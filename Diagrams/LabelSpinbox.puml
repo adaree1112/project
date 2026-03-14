@@ -1,0 +1,45 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class LabelSpinbox {
+  + parameter: Parameter
+  + on_change: callable
+  + value: tk.StringVar
+  + text: tk.StringVar
+  + label: tk.Label
+  + spin_box: ttk.Spinbox
+  --
+  + __init__(master: tk.Widget, parameter: Parameter, on_change: callable)
+  + validate(new_value: str): bool
+  + place_widgets()
+  - _on_value_change(*args)
+}
+
+class Parameter {
+  + label: str
+  + minimum, maximum, step, default: float
+  - _value: float
+  --
+  + value: float {property}
+  + get_label(): str
+  + validate(value): bool
+  + get_spinbox_args(): dict
+}
+
+class DistributionSettingsFrame {
+  + on_change: callable
+  --
+  + __init__(master, parameters, on_change)
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+DistributionSettingsFrame *-- LabelSpinbox : creates one per parameter
+LabelSpinbox *-- Parameter : wraps
+LabelSpinbox --> Controller : _on_value_change() calls on_change()
+
+@enduml

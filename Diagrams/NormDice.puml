@@ -1,0 +1,53 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractDicetribution {
+  + dice_data: list[list[Die]]
+  + parameters: dict
+  --
+  + set_n_dice_row(n: int)
+  + get_n_dice_row(): int
+}
+
+class NormDice {
+  + on_change: callable
+  - _cached_n: int
+  --
+  + __init__(parameters: dict, on_change: callable)
+  - _check_n_changed()
+  + get_dice_row(): list[Die]
+  + get_row_data(row: list[Die]): float {mean of dice}
+  + get_plot_data(show_real: bool): tuple
+  ' sim: histogram x in [1,6] 21 bins
+  ' real: Normal line μ=3.5, σ=√(35/12)/√n
+  + e_and_var(show_real: bool): tuple
+  ' real: E=3.5, Var=35²/144/n
+}
+
+class Die {
+  + num: int
+  --
+  + roll(): int
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+object mean {
+  mean(l: list): float
+}
+
+object sample_var {
+  sample_var(l: list): float
+}
+
+AbstractDicetribution <|-- NormDice
+NormDice *-- Die : get_dice_row() creates
+NormDice --> Controller : _check_n_changed() calls on_change()
+NormDice ..> mean : get_row_data(), e_and_var()
+NormDice ..> sample_var : e_and_var()
+
+@enduml

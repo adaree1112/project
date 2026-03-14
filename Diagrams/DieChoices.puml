@@ -1,0 +1,34 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DiceChoices {
+  + states: list[bool]
+  + labels: list[tk.Label]
+  + on_change: callable
+  --
+  + __init__(master: tk.Widget, on_change: callable)
+  + toggle(index: int, callback: bool)
+  + on_option_change()
+  + get_selected(): list[int]
+}
+
+class DicetributionSettingsFrame {
+  --
+  + __init__(master, parameters, on_change, success_vals_required)
+}
+
+class Controller {
+  --
+  + refresh(success_vals: list[int])
+}
+
+object get_dice_image <<function>> {
+  + get_dice_image(number: int): tk.PhotoImage
+}
+
+DicetributionSettingsFrame *-- DiceChoices : optional, if success_vals_required
+DiceChoices --> Controller : on_option_change() calls on_change(success_vals=...)
+DiceChoices ..> get_dice_image : uses in __init__()
+
+@enduml

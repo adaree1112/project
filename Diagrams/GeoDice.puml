@@ -1,0 +1,45 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractDicetribution {
+  + dice_data: list[list[Die]]
+  + parameters: dict
+  --
+  + set_n_dice_row(n: int)
+  + get_n_dice_row(): int
+}
+
+class GeoDice {
+  - _success_vals: list[int] = [6]
+  --
+  + __init__(parameters: dict)
+  + success_vals: list[int] {property get/set}
+  + get_dice_row(): list[Die]
+  + get_row_data(row: list[Die]): int {len(row)}
+  + get_plot_data(show_real: bool): tuple
+  + e_and_var(show_real: bool): tuple
+  ' real: E=1/p, Var=(1-p)/p²
+  ' p = |success_vals| / 6
+}
+
+class Die {
+  + num: int
+  --
+  + roll(): int
+}
+
+object mean {
+  mean(l: list): float
+}
+
+object sample_var {
+  sample_var(l: list): float
+}
+
+AbstractDicetribution <|-- GeoDice
+GeoDice *-- Die : get_dice_row() creates
+GeoDice ..> mean : e_and_var()
+GeoDice ..> sample_var : e_and_var()
+
+@enduml

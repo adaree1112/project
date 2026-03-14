@@ -1,0 +1,100 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class View {
+  + controller: Controller
+  + graph: tk.Frame
+  + combobox: ComboboxFrame
+  + settings: tk.Frame
+  + dice_or_calc: tk.Frame
+  + e_and_var: tk.Frame
+  --
+  + __init__(master: tk.Tk, controller: Controller)
+  + set_up_blank_view()
+  + grid_config()
+  + place_widgets()
+  + set_definition(latex: str)
+  + set_options(options: list[str])
+  + set_settings(mode: str, *args, **kwargs)
+  + set_graph(mode: str, *args, **kwargs)
+  + update_e_and_var(labels: list[str], values: list[float])
+  + update_graph(*args, **kwargs)
+  + update_dice_or_calc(mode: str, *args)
+  + refresh_calc()
+  + create_menu(master: tk.Tk)
+}
+
+class Controller {
+  + mode: str
+  + set_distribution(dist_type: str)
+  + set_mode(mode: str)
+  + initialise_view(view: View)
+}
+
+class ComboboxFrame {
+  + set_definition(latex: str)
+  + set_options(options: list[str])
+}
+
+class TwoLabels {
+  + __init__(master, names: list[str], values: list[float])
+}
+
+class ModeMenu {
+  + menubar: tk.Menu
+  + __init__(root, mode, callback)
+}
+
+class DistributionGraph {
+  + update_plot(*args, **kwargs)
+}
+
+class DicetributionGraph {
+  + update_plot(*args, **kwargs)
+}
+
+class PiecewiseGraph {
+  + update_plot(*args, **kwargs)
+}
+
+class DistributionSettingsFrame {
+  + __init__(master, *args, **kwargs)
+}
+
+class DicetributionSettingsFrame {
+  + __init__(master, *args, **kwargs)
+}
+
+class PiecewiseSettingsFrame {
+  + __init__(master, *args, **kwargs)
+}
+
+class CalculationFrame {
+  + refresh()
+  + __init__(master, *args)
+}
+
+class DiceCanvas {
+  + __init__(master, *args)
+}
+
+View --> Controller : controller
+
+View *-- ComboboxFrame : combobox
+View *-- TwoLabels : e_and_var
+
+View *-- DistributionGraph : graph (Dist mode)
+View *-- DicetributionGraph : graph (Dice mode)
+View *-- PiecewiseGraph : graph (Piece mode)
+
+View *-- DistributionSettingsFrame : settings (Dist mode)
+View *-- DicetributionSettingsFrame : settings (Dice mode)
+View *-- PiecewiseSettingsFrame : settings (Piece mode)
+
+View *-- CalculationFrame : dice_or_calc (calc mode)
+View *-- DiceCanvas : dice_or_calc (dice mode)
+
+View o-- ModeMenu : creates in create_menu()
+
+@enduml

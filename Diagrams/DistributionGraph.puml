@@ -1,0 +1,37 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DistributionGraph {
+  + fig: Figure
+  + ax: Axes
+  + canvas: FigureCanvasTkAgg
+  --
+  + __init__(master: tk.Widget)
+  + update_plot(x_vals: list[float], y_vals: list[float], graph_type: str, cdf_func: callable, shade_min: float, shade_max: float, show_cursors: bool)
+}
+
+class View {
+  + graph: tk.Frame
+  --
+  + set_graph(mode: str, *args, **kwargs)
+  + update_graph(*args, **kwargs)
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+class AbstractStatisticalModel {
+  --
+  + get_plot_data(): tuple[ndarray, ndarray, str, callable]
+  + cdf(x): float
+}
+
+View *-- DistributionGraph : graph (Dist mode)
+Controller --> View : calls update_graph()
+Controller --> AbstractStatisticalModel : gets plot data from
+AbstractStatisticalModel --> DistributionGraph : provides x_vals, y_vals, graph_type, cdf_func
+
+@enduml

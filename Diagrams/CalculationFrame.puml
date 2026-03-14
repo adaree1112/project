@@ -1,0 +1,73 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class CalculationFrame {
+  + model: AbstractStatisticalModel | Piecewise
+  + shade_between: callable
+  + label1: tk.Label
+  + label1_a: tk.Label
+  + label1_b: tk.Label
+  + label1_b_var: tk.StringVar
+  + label2: tk.Label
+  + entry1: tk.Entry
+  + entry2: tk.Entry
+  + entry3: tk.Entry
+  + entry1_var: tk.StringVar
+  + entry2_var: tk.StringVar
+  + entry3_var: tk.StringVar
+  + combobox: ttk.Combobox
+  --
+  + __init__(master: tk.Widget, model: AbstractStatisticalModel, shade_between: callable)
+  + place_widgets()
+  + refresh(_event: tk.Event)
+  + entry1_updating(_event: tk.Event)
+  + entry2_updating(_event: tk.Event)
+  + entry3_updating(_event: tk.Event)
+  + update_shading()
+}
+
+abstract class AbstractStatisticalModel {
+  + is_discrete: bool
+  --
+  + pxlessthan(x): float
+  + pxlessthanequalto(x): float
+  + pxequals(x): float
+  + pxgreaterthan(x): float
+  + pxgreaterthanequalto(x): float
+  + pxinclusivein(a, b): float
+  + pxexclusivein(a, b): float
+  + xplessthan(p): float
+  + xplessthanequalto(p): float
+  + xpgreaterthan(p): float
+  + xpgreaterthanequalto(p): float
+  + xpexclusivein(p): tuple
+}
+
+class Piecewise {
+  + is_discrete: bool
+  --
+  + pxlessthan(x): float
+  + pxlessthanequalto(x): float
+  + pxinclusivein(a, b): float
+  + pxexclusivein(a, b): float
+}
+
+class View {
+  + dice_or_calc: tk.Frame
+  --
+  + update_dice_or_calc(mode: str, *args)
+  + refresh_calc()
+}
+
+class Controller {
+  --
+  + shade_between(shade_dict: dict)
+}
+
+View *-- CalculationFrame : dice_or_calc (calc mode)
+CalculationFrame o-- AbstractStatisticalModel : model
+CalculationFrame o-- Piecewise : model
+CalculationFrame --> Controller : shade_between() callback
+
+@enduml

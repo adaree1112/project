@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DicetributionSettingsFrame {
+  + on_change: callable
+  + var: tk.BooleanVar
+  + check: ttk.Checkbutton
+  --
+  + __init__(master: tk.Widget, parameters: dict[str, Parameter], on_change: callable, success_vals_required: bool)
+  + on_button_change()
+}
+
+class DiceChoices {
+  + states: list[bool]
+  + labels: list[tk.Label]
+  --
+  + toggle(index: int, callback: bool)
+  + get_selected(): list[int]
+}
+
+class DistributionSettingsFrame {
+  + on_change: callable
+  --
+  + __init__(master: tk.Widget, parameters: dict, on_change: callable)
+}
+
+class View {
+  + settings: tk.Frame
+  --
+  + set_settings(mode: str, *args, **kwargs)
+}
+
+class Controller {
+  --
+  + refresh(success_vals, show_real)
+}
+
+View *-- DicetributionSettingsFrame : settings (Dice mode)
+DicetributionSettingsFrame *-- DiceChoices : optional, if success_vals_required
+DicetributionSettingsFrame *-- DistributionSettingsFrame : always created
+DicetributionSettingsFrame --> Controller : on_change callback triggers refresh()
+
+@enduml

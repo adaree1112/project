@@ -104,7 +104,7 @@ class PairRadioButton(tk.Frame):
         Tkinter variable holding the value of the selected radio button.
     on_change : Callable
         The callback function to be called when the value changes.
-        """
+    """
     def __init__(self, master:tk.Widget, options:list[str], on_change:callable) -> None:
         """
         Initialises the PairRadioButton widget with the given options.

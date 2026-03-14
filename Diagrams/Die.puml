@@ -1,0 +1,27 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class Die {
+  + num: int
+  --
+  + __init__()
+  + roll(): int
+}
+
+abstract class AbstractDicetribution {
+  + dice_data: list[list[Die]]
+  --
+  + get_dice_row(): list[Die]
+  + add_dice_row(n: int)
+  + set_n_dice_row(n: int)
+}
+
+object randint {
+  random.randint(1, 6)
+}
+
+AbstractDicetribution *-- Die : dice_data rows contain
+Die ..> randint : roll()
+
+@enduml

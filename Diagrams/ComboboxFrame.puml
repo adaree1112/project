@@ -1,0 +1,38 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class ComboboxFrame {
+  + on_change: callable
+  + combobox: ttk.Combobox
+  + definition: tk.Label
+  + latex_image: tk.PhotoImage | None
+  --
+  + __init__(master: tk.Widget, on_change: callable)
+  + place_widgets()
+  + callback(_event: tk.Event)
+  + set_definition(definition: str)
+  + set_options(options: list[str])
+}
+
+class View {
+  + combobox: ComboboxFrame
+  --
+  + set_definition(latex: str)
+  + set_options(options: list[str])
+}
+
+class Controller {
+  --
+  + set_distribution(dist_type: str)
+}
+
+object latex_to_tk_image <<function>> {
+  + latex_to_tk_image(definition: str): tk.PhotoImage
+}
+
+View *-- ComboboxFrame : combobox
+ComboboxFrame --> Controller : callback() calls set_distribution()
+ComboboxFrame ..> latex_to_tk_image : uses in set_definition()
+
+@enduml

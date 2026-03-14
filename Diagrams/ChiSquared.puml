@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+  --
+  + cdf(x): float | ndarray
+}
+
+class ChiSquared {
+  + parameters: {nu: Parameter}
+  + is_discrete: bool = False
+  --
+  + __init__(parameters: dict)
+  + mini: float {0}
+  + maxi: float {k + 5√(2k)}
+  + pdf(x): float | ndarray
+  + cdf(x): float | ndarray {overrides}
+  + expectation(): float {k}
+  + variance(): float {2k}
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+object gamma {
+  scipy.special.gamma
+}
+
+object gammainc {
+  scipy.special.gammainc
+}
+
+AbstractStatisticalModel <|-- ChiSquared
+ChiSquared *-- Parameter : nu
+ChiSquared ..> gamma : pdf()
+ChiSquared ..> gammainc : cdf()
+
+@enduml

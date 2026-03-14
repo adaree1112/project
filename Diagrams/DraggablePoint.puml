@@ -1,0 +1,35 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DraggablePoint {
+  + x: float
+  + y: float
+  + controller: object
+  + artist: matplotlib.artist.Artist
+  + press: tuple | None
+  + initial_x: float
+  + initial_y: float
+  --
+  + __init__(coord: tuple[float, float], controller: object)
+  + attach(ax: matplotlib.axes.Axes)
+  + connect()
+  + on_press(event: MouseEvent)
+  + on_motion(event: MouseEvent)
+  + on_release(event: MouseEvent)
+  + get_coords(): tuple[float, float]
+}
+
+class Controller {
+  + point_moved(old_x: float, old_y: float, new_x: float, new_y: float)
+}
+
+class PiecewiseGraph {
+  + draggable_points: list[DraggablePoint]
+  + update_plot(points, pieces, is_normalised, cdf_func, shade_min, shade_max, show_cursors)
+}
+
+DraggablePoint --> Controller : on_release() calls point_moved()
+PiecewiseGraph *-- DraggablePoint : creates one per control point
+
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class ModeMenu {
+  + current_mode: str
+  + title_dict: dict
+  + root: tk.Tk
+  + callback: callable
+  + menubar: tk.Menu
+  --
+  + __init__(root: tk.Tk, mode: str, callback: callable)
+  + create_mode_menu()
+  + create_help_menu()
+  + help_callback(mode: str, dist_type: str)
+  + mode_callback(mode: str)
+}
+
+class HelpWindow {
+  --
+  + __init__(root: tk.Tk, help_file_name: str)
+}
+
+class View {
+  --
+  + create_menu(master: tk.Tk)
+}
+
+class Controller {
+  --
+  + set_mode(mode: str)
+}
+
+View o-- ModeMenu : creates in create_menu()
+ModeMenu --> Controller : mode_callback() calls set_mode()
+ModeMenu --> HelpWindow : help_callback() opens
+
+@enduml

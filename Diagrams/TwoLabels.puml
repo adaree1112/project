@@ -1,0 +1,24 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class TwoLabels {
+  --
+  + __init__(master: tk.Widget, names: list[str], values: list[float])
+}
+
+class View {
+  + e_and_var: tk.Frame
+  --
+  + update_e_and_var(labels: list[str], values: list[float])
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+View *-- TwoLabels : e_and_var
+Controller --> View : calls update_e_and_var()
+
+@enduml

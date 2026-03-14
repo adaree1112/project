@@ -1,0 +1,36 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DicetributionGraph {
+  + fig: Figure
+  + ax: Axes
+  + canvas: FigureCanvasTkAgg
+  --
+  + __init__(master: tk.Widget)
+  + update_plot(x_vals: list[float], y_vals: list[float], r_x_vals: list[float], r_y_vals: list[float], r_graph_type: str)
+}
+
+class View {
+  + graph: tk.Frame
+  --
+  + set_graph(mode: str, *args, **kwargs)
+  + update_graph(*args, **kwargs)
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+class AbstractDicetribution {
+  --
+  + get_plot_data(show_real: bool): tuple
+}
+
+View *-- DicetributionGraph : graph (Dice mode)
+Controller --> View : calls update_graph()
+Controller --> AbstractDicetribution : gets plot data from
+AbstractDicetribution --> DicetributionGraph : provides x_vals, y_vals, r_x_vals, r_y_vals, r_graph_type
+
+@enduml

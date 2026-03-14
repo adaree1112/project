@@ -1,0 +1,28 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DiceRow {
+  + dice_vals: list[int]
+  + row_val: float | int | None
+  + row_image: tk.PhotoImage | None
+  --
+  + __init__(master: tk.Widget, dice_vals: list[int], row_val: float | int)
+  + create_row()
+  + dice_row_image(): tk.PhotoImage
+}
+
+class DiceCanvas {
+  + scrollable_frame: ttk.Frame
+  --
+  + place_widgets()
+}
+
+object get_dice_image <<function>> {
+  + get_dice_image(number: int): Image.Image
+}
+
+DiceCanvas *-- DiceRow : creates one per row in place_widgets()
+DiceRow ..> get_dice_image : uses in dice_row_image()
+
+@enduml

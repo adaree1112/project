@@ -471,13 +471,6 @@ class View(tk.Frame):
         """
         self.graph.update_plot(*args,**kwargs)
 
-    def refresh_calc(self):
-        try:
-            self.dice_or_calc.e1_updating()
-        except ValueError:
-            pass
-
-
     def update_dice_or_calc(self,mode:str,*args)->None:
         """
         Updates the dice frame or calculation frame based on the mode.

@@ -1,0 +1,29 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class PairRadioButton {
+  + options: list[str]
+  + v: tk.StringVar
+  + on_change: callable
+  --
+  + __init__(master: tk.Widget, options: list[str], on_change: callable)
+  + on_option_change()
+  + get(): str
+}
+
+class PiecewiseSettingsFrame {
+  + radiobuttons: PairRadioButton
+  --
+  + __init__(master, on_change, add, remove, normalise)
+}
+
+class Controller {
+  --
+  + set_piecewise_type(piecewise_type: str)
+}
+
+PiecewiseSettingsFrame *-- PairRadioButton : radiobuttons
+PairRadioButton --> Controller : on_option_change() calls set_piecewise_type()
+
+@enduml

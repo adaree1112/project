@@ -1,0 +1,41 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+  --
+  + cdf(x): float
+  + pxlessthan(x): float
+  + xpinclusivein(p): tuple {raises NotImplementedError}
+  + xpexclusivein(p): tuple {raises NotImplementedError}
+}
+
+class Normal {
+  + parameters: {mu: Parameter, sigma: Parameter}
+  + is_discrete: bool = False
+  --
+  + __init__(parameters: dict)
+  + mini: float {μ − 5σ}
+  + maxi: float {μ + 5σ}
+  + pdf(x): float | ndarray
+  + expectation(): float {μ}
+  + variance(): float {σ²}
+  + xpexclusivein(p: float): tuple[float, float]
+  + xpinclusivein(p: float): tuple[float, float]
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+object binary_search_for_x <<function>>
+
+AbstractStatisticalModel <|-- Normal
+Normal *-- Parameter : mu, sigma
+Normal ..> binary_search_for_x : xpexclusivein()
+
+@enduml

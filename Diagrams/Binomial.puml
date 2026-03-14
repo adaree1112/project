@@ -1,0 +1,36 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+}
+
+class Binomial {
+  + parameters: {n: Parameter, p: Parameter}
+  + is_discrete: bool = True
+  --
+  + __init__(parameters: dict)
+  + mini: int {0}
+  + maxi: int {n}
+  + pdf(x): float | ndarray
+  + expectation(): float {n·p}
+  + variance(): float {n·p·(1-p)}
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+object comb {
+  scipy.special.comb
+}
+
+AbstractStatisticalModel <|-- Binomial
+Binomial *-- Parameter : n, p
+Binomial ..> comb : pdf()
+
+@enduml

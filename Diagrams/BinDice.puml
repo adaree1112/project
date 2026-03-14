@@ -1,0 +1,63 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractDicetribution {
+  + dice_data: list[list[Die]]
+  + parameters: dict
+  --
+  + set_n_dice_row(n: int)
+  + get_n_dice_row(): int
+}
+
+class BinDice {
+  + success_vals: list[int] = [6]
+  + on_change: callable
+  - _cached_n: int
+  --
+  + __init__(parameters: dict, on_change: callable)
+  - _check_n_changed()
+  + get_dice_row(): list[Die]
+  + get_row_data(row: list[Die]): int
+  + get_plot_data(show_real: bool): tuple
+  + e_and_var(show_real: bool): tuple
+  ' real: E=n·p, Var=n·p·(1-p)
+  ' p = |success_vals| / 6
+}
+
+class Die {
+  + num: int
+  --
+  + roll(): int
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+object mean {
+  mean(l: list): float
+}
+
+object sample_var {
+  sample_var(l: list): float
+}
+
+object count_multiple {
+  count_multiple(l, value_list): int
+}
+
+object comb {
+  scipy.special.comb
+}
+
+AbstractDicetribution <|-- BinDice
+BinDice *-- Die : get_dice_row() creates
+BinDice --> Controller : _check_n_changed() calls on_change()
+BinDice ..> mean : e_and_var()
+BinDice ..> sample_var : e_and_var()
+BinDice ..> count_multiple : get_row_data(), get_plot_data()
+BinDice ..> comb : get_plot_data()
+
+@enduml

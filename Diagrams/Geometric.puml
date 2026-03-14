@@ -1,0 +1,31 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+abstract class AbstractStatisticalModel {
+  + parameters: dict
+  + is_discrete: bool
+}
+
+class Geometric {
+  + parameters: {p: Parameter}
+  + is_discrete: bool = True
+  --
+  + __init__(parameters: dict)
+  + mini: int {1}
+  + maxi: int {1/p + 5√((1-p)/p²)}
+  + pdf(x): float | ndarray {(1-p)^(x-1)·p}
+  + expectation(): float {1/p}
+  + variance(): float {(1-p)/p²}
+}
+
+class Parameter {
+  - _value: float
+  --
+  + value: float {property}
+}
+
+AbstractStatisticalModel <|-- Geometric
+Geometric *-- Parameter : p
+
+@enduml

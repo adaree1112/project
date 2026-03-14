@@ -1,0 +1,45 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class Parameter {
+  + label: str
+  + minimum: float | int
+  + maximum: float | int
+  + step: float | int
+  + default: float | int
+  - _value: float | int
+  --
+  + __init__(label, minimum, maximum, step, default)
+  + value: float {property get/set}
+  + get_label(): str
+  + validate(value: float | str): bool
+  + get_spinbox_args(): dict
+}
+
+class LabelSpinbox {
+  + parameter: Parameter
+  --
+  + validate(new_value: str): bool
+  - _on_value_change()
+}
+
+class AbstractStatisticalModel {
+  + parameters: dict[str, Parameter]
+}
+
+class AbstractDicetribution {
+  + parameters: dict[str, Parameter]
+}
+
+class Controller {
+  --
+  + set_distribution(dist_type: str)
+}
+
+LabelSpinbox *-- Parameter : wraps
+AbstractStatisticalModel *-- Parameter
+AbstractDicetribution *-- Parameter
+Controller ..> Parameter : creates in set_distribution()
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class HelpWindow {
+  + canvas: tk.Canvas
+  + y_scrollbar: ttk.Scrollbar
+  + x_scrollbar: ttk.Scrollbar
+  + scrollable_frame: ttk.Frame
+  + label: tk.Label
+  - help_file_name: str
+  --
+  + __init__(root: tk.Tk, help_file_name: str)
+  + place_widgets()
+  + get_help_text(): str
+}
+
+class ModeMenu {
+  --
+  + help_callback(mode: str, dist_type: str)
+}
+
+ModeMenu --> HelpWindow : help_callback() creates
+
+@enduml

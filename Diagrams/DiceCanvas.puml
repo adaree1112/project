@@ -1,0 +1,40 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class DiceCanvas {
+  + dice_vals_rows: list[tuple[list[int], float | None]]
+  + canvas: tk.Canvas
+  + y_scrollbar: ttk.Scrollbar
+  + x_scrollbar: ttk.Scrollbar
+  + scrollable_frame: ttk.Frame
+  --
+  + __init__(container_frame: tk.Frame, dice_vals_rows: list[tuple])
+  + place_widgets()
+}
+
+class DiceRow {
+  + dice_vals: list[int]
+  + row_val: float | int | None
+  --
+  + __init__(master: tk.Widget, dice_vals: list[int], row_val: float | int)
+  + create_row()
+  + dice_row_image(): tk.PhotoImage
+}
+
+class View {
+  + dice_or_calc: tk.Frame
+  --
+  + update_dice_or_calc(mode: str, *args)
+}
+
+class Controller {
+  --
+  + refresh()
+}
+
+View *-- DiceCanvas : dice_or_calc (dice mode)
+DiceCanvas *-- DiceRow : creates one per row in place_widgets()
+Controller --> View : calls update_dice_or_calc("dice", ...)
+
+@enduml

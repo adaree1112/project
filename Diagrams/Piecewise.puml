@@ -1,0 +1,74 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+
+class Piecewise {
+  - _points: list[tuple[float, float]]
+  + is_discrete: bool = False
+  + is_normalised: bool
+  + pieces: list
+  --
+  + __init__(points: list[tuple])
+  + mini: float {property}
+  + maxi: float {property}
+  + get_points(): list[tuple]
+  + get_num_points(): int
+  + check_for_point(point: tuple): tuple | False
+  + add_point(point: tuple | None)
+  + remove_point(point: tuple | None)
+  + calculate_pieces(linear: bool)
+  + update_point(old_x, old_y, new_x, new_y)
+  + normalise()
+  + integrate_piecewise(l: float, u: float): float
+  + expectation(sq: bool): float
+  + variance(): float
+  + cdf(x_vals): float | ndarray
+  + pxlessthan(x): float
+  + pxequals(x): float {static}
+  + pxlessthanequalto(x): float
+  + pxgreaterthan(x): float
+  + pxgreaterthanequalto(x): float
+  + pxinclusivein(a, b): float
+  + pxexclusivein(a, b): float
+  + xplessthan(p): float
+  + xplessthanequalto(p): float
+  + xpgreaterthan(p): float
+  + xpgreaterthanequalto(p): float
+  + xpinclusivein(p) {raises NotImplementedError}
+  + xpexclusivein(p) {raises NotImplementedError}
+}
+
+class Controller {
+  + model: Piecewise
+  --
+  + handle_add_point(point: tuple)
+  + handle_remove_point()
+  + handle_normalise()
+  + point_moved(old_x, old_y, new_x, new_y)
+  + set_piecewise_type(piecewise_type: str)
+}
+
+class CalculationFrame {
+  + model: Piecewise
+  --
+  + entry1_updating()
+  + entry2_updating()
+  + update_shading()
+}
+
+object piecewise_cubic_spline <<function>>
+object piecewise_linear <<function>>
+object integrate_nbic <<function>>
+object binary_search_for_x <<function>>
+object merge_sort <<function>>
+
+Controller o-- Piecewise : model (Piece mode)
+CalculationFrame o-- Piecewise : model
+
+Piecewise ..> piecewise_cubic_spline : calculate_pieces()
+Piecewise ..> piecewise_linear : calculate_pieces()
+Piecewise ..> integrate_nbic : integrate_piecewise(), expectation()
+Piecewise ..> binary_search_for_x : xplessthan()
+Piecewise ..> merge_sort : calculate_pieces()
+
+@enduml

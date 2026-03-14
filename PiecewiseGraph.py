@@ -500,7 +500,6 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.remove_button.pack(side="top", expand=True, fill="x")
         self.normalise_button.pack(side="top", expand=True, fill="x")
 
-#TODO FIX ME
 class CalculationFrame(tk.Frame):
     """
     A Frame widget for managing the calculations.
@@ -923,6 +922,14 @@ class DiceRow(tk.Frame):
             value_label.pack(side="left", padx=5)
 
     def dice_row_image(self) -> tk.PhotoImage:
+        """
+        Creates a single image containing every die in the row.
+
+        Returns
+        -------
+        tk.PhotoImage
+            The image containing every die in the row
+        """
         images = [get_dice_image(num) for num in self.dice_vals]
         width = sum([img.width for img in images])
         height = max([img.height for img in images])
@@ -1015,26 +1022,6 @@ class DiceCanvas(tk.Frame):
 #     score_str+=f"{row[1]}\n\n\n\n\n"
 
 # print("\n".join(["   ║   ".join(line_parts) for line_parts in zip(output_str.split("\n"),score_str.split("\n"))]))
-
-class DiceWindow(tk.Toplevel):
-    def __init__(self, master: tk.Tk, dice_vals_rows: list[tuple[list[int], int | float | None]]):
-        """
-        Initialises the DiceWindow widget.
-
-        Parameters
-        ----------
-        master : tk.Widget
-            The parent widget for the window.
-        dice_vals_rows : list[tuple[list[int],int|float|None]]
-            A list of tuples where each tuple consists of a list of dice and an optional value.
-        """
-        super().__init__(master)
-        self.title("Dice Rolls")
-        self.geometry("400x300")
-        self.resizable(True, True)
-
-        dice_canvas = DiceCanvas(self, dice_vals_rows)
-        dice_canvas.pack(fill="both", expand=True)
 
 
 class ModeMenu:
