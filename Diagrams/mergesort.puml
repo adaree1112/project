@@ -1,0 +1,42 @@
+@startuml
+
+partition "merge(left, right, key)" {
+
+start
+:Receive left, right and key;
+:Initialise result as empty list;
+:Initialise l and r pointers as 0;
+while (l<Number of elements in Left and r<Number of elements in Right) is (yes)
+if (key(left[l]) < key(right[r])) then (yes)
+:Append left[l] to result;
+:l+=1;
+else (no)
+:Append right[r] to result;
+:r+=1;
+endif
+endwhile (no)
+:Copy remaining elements of Left into result;
+:Copy remaining elements of Right into result;
+:Output result;
+stop
+}
+
+partition "mergeSort(A, key)" {
+start
+:Receive array A, and key;
+if (Size of A <= 1?) then (yes)
+:Return A;
+stop
+else (no)
+:Split A into Left and Right;
+split
+:Recursively sort Left subarray;
+split again
+:Recursively sort Right subarray;
+end split
+:Merge Left and Right into SortedArray;
+:Output SortedArray;
+endif
+stop
+}
+@enduml

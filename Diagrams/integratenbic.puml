@@ -1,0 +1,11 @@
+@startuml
+
+partition "integrate_nbic(x1, x2, a, b, c, d, n)" {
+start
+:compute a * (x2^(n+1) - x1^(n+1)) / (n+1) + b * (x2^n - x1^n) / n
++ c * (x2^(n-1) - x1^(n-1)) / (n-1)+ d * (x2^(n-2) - x1^(n-2)) / (n-2);
+:return result;
+stop
+}
+
+@enduml

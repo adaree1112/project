@@ -2,7 +2,7 @@
 skinparam classAttributeIconSize 0
 skinparam defaultFontSize 11
 
-class MEGAController {
+class Controller {
   + view: View
   + mode: str
   + piecewise_type: str
@@ -66,10 +66,10 @@ class Piecewise {
   + cdf(x): float
 }
 
-MEGAController --> View : calls methods on
-MEGAController o-- AbstractStatisticalModel : model (Dist)
-MEGAController o-- AbstractDicetribution : model (Dice)
-MEGAController o-- Piecewise : model (Piece)
+Controller --> View : calls methods on
+Controller o-- AbstractStatisticalModel : model (Dist)
+Controller o-- AbstractDicetribution : model (Dice)
+Controller o-- Piecewise : model (Piece)
 
 AbstractStatisticalModel <|-- Normal
 AbstractStatisticalModel <|-- Binomial

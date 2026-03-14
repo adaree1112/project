@@ -1,0 +1,37 @@
+@startuml
+skinparam defaultFontSize 11
+
+partition dealwithnegatives(pieces)
+start
+
+:Initialise new_pieces as empty list;
+
+while (more pieces to process?) is (yes)
+  :Unpack piece into x1, x2, a, b, c, d;
+  :Evaluate y over 100 points in [x1, x2];
+
+  if (min(y) < 0?) then (yes)
+    :Find real roots of cubic in [x1, x2];
+    :Build partition p = [x1] + roots + [x2];
+
+    while (more sub-intervals in p?) is (yes)
+      :Take next sub-interval [x1, x2];
+      :Evaluate y at midpoint;
+
+      if (y at midpoint < 0?) then (yes)
+        :Append zero segment [x1, x2, 0, 0, 0, 0];
+      else (no)
+        :Append original segment [x1, x2, a, b, c, d];
+      endif
+    endwhile (no)
+
+  else (no)
+    :Append original piece unchanged;
+  endif
+
+endwhile (no)
+
+:Return new_pieces;
+
+stop
+@enduml

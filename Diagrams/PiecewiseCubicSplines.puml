@@ -1,0 +1,36 @@
+@startuml
+partition getpieces(points)
+start
+:get points;
+:Sort points by x-coordinate using merge_sort;
+:calculate n as the number of points -1;
+partition "Matrix Initialisation" {
+:initialise matrix, a matrix 4n by 4n filled with 0s;
+:initialise matrixb, a matrix 4n by 1 filled with 0s;
+}
+
+partition "Position Constraints"{
+  while (For each interval i from 0 to n-1)
+    :Set fᵢ(xᵢ) = yᵢ;
+    :Set fᵢ(xᵢ₊₁) = yᵢ₊₁;
+  endwhile
+}
+
+partition "Continuity Constraints"{
+  while (For each interval i from 0 to n-1)
+    :Set f'ᵢ(xᵢ₊₁) = f'ᵢ₊₁(xᵢ₊₁);
+    :Increment i;
+  endwhile
+}
+
+partition "Boundary Constraints"{
+    :Set f''₀(x₀) = 0;
+    :Set f''ₙ₋₁(xₙ) = 0;
+}
+
+:coefficient_matrix = solve(matrix, matrixb);
+:Group coefficients into [x1, x2, a, b, c, d] for each interval as list of pieces;
+:DealWithNegatives(pieces);
+:return pieces;
+stop
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+partition "get pieces(points)"{
+start
+:get list of points;
+:set previous point to first point;
+:initialise empty piece list;
+while (for point in points excluding first point)
+    :get m from previous point and point;
+    :get c from previous point and point;
+    :add m and c into piece list;
+    :set previous point to point;
+endwhile (then)
+:return piece list;
+stop
+}
+
+partition "get m (point1, point2)"{
+start
+:set x1 and y1 to point1;
+:set x2 and y2 to point2;
+:set m to (y2-y1)/(x2-x1);
+:return m;
+stop
+}
+
+partition "get c (point1, point2)"{
+start
+:set x1 and y1 to point1;
+:set x2 and y2 to point2;
+:set c to y1-x1*(y2-y1)/(x2-x1);
+:return c;
+stop
+}
+
+@enduml

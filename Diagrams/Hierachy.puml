@@ -1,0 +1,138 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 11
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 60
+
+package "Entry Point" {
+  class Main
+}
+
+package "MVC" {
+  class Controller
+  class View
+}
+
+package "Models" {
+  abstract class AbstractStatisticalModel
+  abstract class AbstractDicetribution
+  class Piecewise
+
+  package "Statistical Distributions" {
+    class Normal
+    class Binomial
+    class Poisson
+    class Geometric
+    class Exponential
+    class ChiSquared
+  }
+
+  package "Dice Distributions" {
+    class GeoDice
+    class BinDice
+    class NormDice
+  }
+}
+
+package "View Widgets" {
+  package "Graphs" {
+    class DistributionGraph
+    class DicetributionGraph
+    class PiecewiseGraph
+  }
+
+  package "Settings Frames" {
+    class DistributionSettingsFrame
+    class DicetributionSettingsFrame
+    class PiecewiseSettingsFrame
+  }
+
+  package "Calc / Dice Display" {
+    class CalculationFrame
+    class DiceCanvas
+    class DiceRow
+    class DiceWindow
+  }
+
+  package "Input Widgets" {
+    class LabelSpinbox
+    class PairRadioButton
+    class DiceChoices
+  }
+
+  package "Other Widgets" {
+    class ComboboxFrame
+    class TwoLabels
+    class ModeMenu
+    class HelpWindow
+  }
+}
+
+package "Utility" {
+  class Parameter
+  class Die
+  class DraggablePoint
+
+  package "Math Functions" {
+    object integrate_nbic
+    object binary_search_for_x
+    object mean
+    object sample_var
+    object count_multiple
+  }
+
+  package "Spline Functions" {
+    object piecewise_cubic_spline
+    object piecewise_linear
+    object deal_with_negatives
+    object merge_sort
+  }
+}
+
+Main --> Controller
+Main --> View
+
+Controller --> AbstractStatisticalModel
+Controller --> AbstractDicetribution
+Controller --> Piecewise
+Controller --> View
+
+AbstractStatisticalModel <|-- Normal
+AbstractStatisticalModel <|-- Binomial
+AbstractStatisticalModel <|-- Poisson
+AbstractStatisticalModel <|-- Geometric
+AbstractStatisticalModel <|-- Exponential
+AbstractStatisticalModel <|-- ChiSquared
+
+AbstractDicetribution <|-- GeoDice
+AbstractDicetribution <|-- BinDice
+AbstractDicetribution <|-- NormDice
+
+View *-- DistributionGraph
+View *-- DicetributionGraph
+View *-- PiecewiseGraph
+View *-- DistributionSettingsFrame
+View *-- DicetributionSettingsFrame
+View *-- PiecewiseSettingsFrame
+View *-- CalculationFrame
+View *-- DiceCanvas
+View *-- ComboboxFrame
+View *-- TwoLabels
+View o-- ModeMenu
+
+DicetributionSettingsFrame *-- DiceChoices
+DicetributionSettingsFrame *-- DistributionSettingsFrame
+DistributionSettingsFrame *-- LabelSpinbox
+PiecewiseSettingsFrame *-- PairRadioButton
+DiceCanvas *-- DiceRow
+DiceWindow *-- DiceCanvas
+ModeMenu --> HelpWindow
+
+PiecewiseGraph *-- DraggablePoint
+LabelSpinbox *-- Parameter
+AbstractStatisticalModel *-- Parameter
+AbstractDicetribution *-- Parameter
+AbstractDicetribution *-- Die
+
+@enduml

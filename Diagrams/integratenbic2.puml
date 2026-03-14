@@ -1,0 +1,13 @@
+@startuml
+
+partition "integrate_nbic(coefficients, x1, x2)" {
+start
+:set total to 0;
+while (for i, c in enumerate(coefficients))
+    :total += c/(i+1) * (x2^(i+1) - x1^(i+1));
+endwhile (then)
+:return total;
+stop
+}
+
+@enduml

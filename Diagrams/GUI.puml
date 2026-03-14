@@ -1,0 +1,94 @@
+@startuml
+skinparam defaultFontSize 11
+
+actor User
+participant "tk.Tk\n(Root Window)" as Root
+participant "View" as View
+participant "ModeMenu" as Menu
+participant "ComboboxFrame" as Combo
+participant "Controller" as Controller
+participant "Settings Frame" as Settings
+participant "Graph Frame" as Graph
+participant "Dice/Calc Frame" as DiceCalc
+participant "E&Var Frame" as EVar
+participant "Model" as Model
+
+== Startup ==
+Root -> View : __init__(root, controller)
+View -> View : set_up_blank_view()
+View -> View : grid_config()
+View -> View : place_widgets()
+View -> Menu : create_menu(root)
+View -> Controller : initialise_view(self)
+Controller -> View : set_mode(starting_mode)
+View -> Combo : set_options(options)
+
+== User Selects Distribution ==
+User -> Combo : selects from combobox
+Combo -> Controller : set_distribution(dist_type)
+Controller -> Controller : create Parameters + Model
+Controller -> View : set_definition(latex)
+View -> Combo : set_definition(latex)
+Controller -> View : set_settings(mode, params)
+View -> Settings : destroy old + create new
+Controller -> View : set_graph(mode)
+View -> Graph : destroy old + create new
+Controller -> View : update_dice_or_calc("calc", model)
+View -> DiceCalc : destroy old + create CalculationFrame
+Controller -> Controller : refresh()
+Controller -> Model : expectation(), variance()
+Controller -> View : update_e_and_var(labels, values)
+View -> EVar : destroy old + create TwoLabels
+Controller -> Model : get_plot_data()
+Controller -> View : update_graph(x, y, type, cdf)
+View -> Graph : update_plot(...)
+
+== User Changes Parameter ==
+User -> Settings : adjusts spinbox
+Settings -> Controller : on_change()
+Controller -> Model : update parameter value
+Controller -> Controller : refresh()
+Controller -> View : update_e_and_var(...)
+Controller -> View : update_graph(...)
+
+== User Changes Mode ==
+User -> Menu : selects mode
+Menu -> Controller : set_mode(mode)
+Controller -> View : set_up_blank_view()
+Controller -> View : set_options(options)
+
+== User Enters Calculation ==
+User -> DiceCalc : types x in entry
+DiceCalc -> Model : pxlessthan(x) etc.
+DiceCalc -> DiceCalc : update entry2 with p
+DiceCalc -> Controller : shade_between(shade_dict)
+Controller -> Controller : refresh()
+Controller -> View : update_graph(..., shade_min, shade_max)
+View -> Graph : update_plot(..., shade_min, shade_max)
+
+== Piecewise: User Drags Point ==
+User -> Graph : drags red point
+Graph -> Graph : DraggablePoint.on_motion()
+User -> Graph : releases point
+Graph -> Controller : point_moved(old_x, old_y, new_x, new_y)
+Controller -> Model : update_point(...)
+Controller -> Controller : refresh()
+Controller -> View : update_graph(points, pieces, ...)
+
+== Piecewise: User Double Clicks ==
+User -> Graph : double clicks canvas
+Graph -> Controller : handle_add_point(x, y)
+Controller -> Model : add_point(point)
+Controller -> Controller : refresh()
+Controller -> View : update_graph(points, pieces, ...)
+
+== Dice Mode: User Changes Trials ==
+User -> Settings : adjusts num trials spinbox
+Settings -> Controller : on_change()
+Controller -> Model : add_dice_row(n - get_n_dice_row())
+Controller -> View : update_dice_or_calc("dice", dice_data)
+View -> DiceCalc : destroy old + create DiceCanvas
+Controller -> View : update_e_and_var(...)
+Controller -> View : update_graph(...)
+
+@enduml

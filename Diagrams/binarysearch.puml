@@ -1,0 +1,23 @@
+@startuml
+partition binarysearchforx(target,max,min,func)
+
+start
+:get target, max, min, and func;
+while ()
+:mid=(max+min)/2;
+if (func(mid) is close to target) then (yes)
+:return mid;
+stop
+else (no)
+if (func(mid) > target) then (yes)
+:min, max = mid, max;
+else (no)
+:min, max = min, mid;
+endif
+endif
+endwhile
+-[hidden]->
+detach
+
+
+@enduml
