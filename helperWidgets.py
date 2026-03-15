@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from PIL import Image, ImageTk
 
-from Piecewise import Parameter
+from models import Parameter
 
 
 class LabelSpinbox(tk.Frame):
@@ -249,7 +249,8 @@ class TwoLabels(tk.Frame):
     """
     A custom tkinter widget that displays two columns of labels: one for names and one for values.
     """
-    def __init__(self, master:tk.Widget, names:list[str], values:list[float])-> None:
+
+    def __init__(self, master: tk.Widget, names: list[str], values: list[float]) -> None:
         """
         Initialises the TwoLabels widget with the given names and values.
 

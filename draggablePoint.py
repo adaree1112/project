@@ -1,5 +1,5 @@
-import matplotlib.backend_bases
 import matplotlib.axes
+import matplotlib.backend_bases
 
 
 class DraggablePoint:
@@ -25,7 +25,8 @@ class DraggablePoint:
     initial_y : float
         The initial y-coordinate of the point
     """
-    def __init__(self, coord:tuple[float|int,float|int], controller:object)->None:
+
+    def __init__(self, coord: tuple[float | int, float | int], controller: object) -> None:
         """
         Constructs the required attributes for the draggable point
 
@@ -43,7 +44,7 @@ class DraggablePoint:
 
         self.initial_x, self.initial_y = coord
 
-    def connect(self)->None:
+    def connect(self) -> None:
         """
         Connects the event handlers for mouse press, mouse release and motion events.
 
@@ -56,8 +57,7 @@ class DraggablePoint:
         fig.canvas.mpl_connect('button_release_event', self.on_release)
         fig.canvas.mpl_connect('motion_notify_event', self.on_motion)
 
-
-    def on_press(self, event:matplotlib.backend_bases.MouseEvent)->None:
+    def on_press(self, event: matplotlib.backend_bases.MouseEvent) -> None:
         """
         Handles the mouse press event to begin dragging the point.
 
@@ -79,7 +79,7 @@ class DraggablePoint:
         x0, y0 = self.artist.get_data()
         self.press = (x0[0], y0[0]), (event.xdata, event.ydata)
 
-    def attach(self, ax : matplotlib.axes.Axes)->None:
+    def attach(self, ax: matplotlib.axes.Axes) -> None:
         """
         Attaches the draggable point to the given axes
         Parameters
@@ -90,7 +90,7 @@ class DraggablePoint:
         self.artist, = ax.plot(self.x, self.y, 'ro', picker=5)
         self.connect()
 
-    def on_motion(self, event : matplotlib.backend_bases.MouseEvent)->None:
+    def on_motion(self, event: matplotlib.backend_bases.MouseEvent) -> None:
         """
         Handles the mouse motion event to update the position of the point.
 
@@ -115,7 +115,7 @@ class DraggablePoint:
         self.artist.set_data([self.x], [self.y])
         self.artist.figure.canvas.draw()
 
-    def on_release(self, _event:matplotlib.backend_bases.MouseEvent)->None:
+    def on_release(self, _event: matplotlib.backend_bases.MouseEvent) -> None:
         """
         Handles the mouse release event to update the position of the point.
 
@@ -142,7 +142,7 @@ class DraggablePoint:
         if hasattr(self.controller, 'point_moved'):
             self.controller.point_moved(old_x, old_y, new_x, new_y)
 
-    def get_coords(self)->tuple[float, float]:
+    def get_coords(self) -> tuple[float, float]:
         """
         Returns the current x,y coordinates of the point.
 

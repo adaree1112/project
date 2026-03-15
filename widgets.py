@@ -1,18 +1,17 @@
+import mplcursors
+import numpy as np
+import os
 import tkinter as tk
 import tkinter.ttk as ttk
-import os
-
-import numpy as np
 from PIL import Image, ImageTk
-import mplcursors
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 from numpy import ndarray
 
-from Piecewise import Piecewise, AbstractStatisticalModel, Normal, Exponential
-from DraggablePoint import DraggablePoint
-from LaTeXformulaimage import latex_to_tk_image
-from LabelSpinbox import LabelSpinbox, PairRadioButton, DiceChoices
+from LaTeXFormulaImage import latex_to_tk_image
+from draggablePoint import DraggablePoint
+from helperWidgets import LabelSpinbox, PairRadioButton, DiceChoices
+from models import Piecewise, AbstractStatisticalModel, Normal, Exponential
 from the_game import GameView, GameController
 from tother_game import TOtherGameView, TOtherGameController
 
@@ -158,7 +157,7 @@ class PiecewiseGraph(tk.Frame):
             The mouse event triggered by the double click.
         """
         x_data = self.ax.get_xlim()[0] + (
-                    self.ax.get_xlim()[1] - self.ax.get_xlim()[0]) * event.x / self.canvas.get_tk_widget().winfo_width()
+                self.ax.get_xlim()[1] - self.ax.get_xlim()[0]) * event.x / self.canvas.get_tk_widget().winfo_width()
         y_data = self.ax.get_ylim()[1] + (self.ax.get_ylim()[0] - self.ax.get_ylim()[
             1]) * event.y / self.canvas.get_tk_widget().winfo_height()
         y_data = max(0, y_data)
@@ -270,7 +269,6 @@ class DistributionGraph(tk.Frame):
                     [shade_max, shade_max], [0, shade_max_y],
                     color='green', linestyle='--', linewidth=2
                 )
-
 
             if show_cursors:
                 cursor = mplcursors.cursor(plot, hover=True)
@@ -500,6 +498,7 @@ class PiecewiseSettingsFrame(tk.Frame):
         self.remove_button.pack(side="top", expand=True, fill="x")
         self.normalise_button.pack(side="top", expand=True, fill="x")
 
+
 class CalculationFrame(tk.Frame):
     """
     A Frame widget for managing the calculations.
@@ -562,27 +561,30 @@ class CalculationFrame(tk.Frame):
         self.model = model
         self.shade_between = shade_between
 
-        v_cmd=(self.register(lambda s: s in ["","-","."] or (isinstance(s, (int, float)) or (isinstance(s, str) and s.replace('.', '', 1).replace('-', '', 1).isdigit()))), '%P')
+        v_cmd = (self.register(lambda s: s in ["", "-", "."] or (isinstance(s, (int, float)) or (
+                    isinstance(s, str) and s.replace('.', '', 1).replace('-', '', 1).isdigit()))), '%P')
 
         self.label1 = tk.Label(self, text="P(X", width=2)
         self.combobox = ttk.Combobox(self, values=["<", "≤"] + ["="] * (
-            not (isinstance(self.model, Exponential) or isinstance(self.model, Normal) or isinstance(self.model, Piecewise))) + ["≥", ">", "< <", "≤ ≤"],
+            not (isinstance(self.model, Exponential) or isinstance(self.model, Normal) or isinstance(self.model,
+                                                                                                     Piecewise))) + [
+                                                      "≥", ">", "< <", "≤ ≤"],
                                      width=2)
 
         self.entry1_var = tk.StringVar()
         self.entry2_var = tk.StringVar()
         self.entry3_var = tk.StringVar()
 
-        self.entry1 = tk.Entry(self, width=6, textvariable=self.entry1_var,validatecommand=v_cmd, validate="key")
+        self.entry1 = tk.Entry(self, width=6, textvariable=self.entry1_var, validatecommand=v_cmd, validate="key")
         self.label2 = tk.Label(self, text=")=", width=2)
-        self.entry2 = tk.Entry(self, width=6, textvariable=self.entry2_var,validatecommand=v_cmd, validate="key")
+        self.entry2 = tk.Entry(self, width=6, textvariable=self.entry2_var, validatecommand=v_cmd, validate="key")
 
         self.label1_a = tk.Label(self, text="P(", width=2)
         self.label1_b_var = tk.StringVar(self)
         self.label1_b_var.set("X")
 
         self.label1_b = tk.Label(self, textvariable=self.label1_b_var, width=2)
-        self.entry3 = tk.Entry(self, width=6, textvariable=self.entry3_var,validatecommand=v_cmd, validate="key")
+        self.entry3 = tk.Entry(self, width=6, textvariable=self.entry3_var, validatecommand=v_cmd, validate="key")
 
         self.entry1.bind('<KeyRelease>', self.entry1_updating)
         self.entry2.bind('<KeyRelease>', self.entry2_updating)
@@ -636,14 +638,14 @@ class CalculationFrame(tk.Frame):
             pass
 
         self.entry2.config(state="normal")
-        if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <","≤ ≤"]) or self.combobox.get() == "=":
+        if ((not isinstance(self.model, Normal)) and self.combobox.get() in ["< <",
+                                                                             "≤ ≤"]) or self.combobox.get() == "=":
             self.entry2.config(state="disabled")
         self.place_widgets()
         try:
             self.update_shading()
         except KeyError:
             pass
-
 
     def entry1_updating(self, _event: tk.Event = None) -> None:
         """
@@ -663,13 +665,13 @@ class CalculationFrame(tk.Frame):
         x = np.float64(self.entry1_var.get())
         b = x
         p_dict = {"<": self.model.pxlessthan(x),
-                 "≤": self.model.pxlessthanequalto(x),
-                 "=": self.model.pxequals(x),
-                 "≥": self.model.pxgreaterthanequalto(x),
-                 ">": self.model.pxgreaterthan(x),
-                 "< <": self.model.pxexclusivein(a, b),
-                 "≤ ≤": self.model.pxinclusivein(a, b),
-                 }
+                  "≤": self.model.pxlessthanequalto(x),
+                  "=": self.model.pxequals(x),
+                  "≥": self.model.pxgreaterthanequalto(x),
+                  ">": self.model.pxgreaterthan(x),
+                  "< <": self.model.pxexclusivein(a, b),
+                  "≤ ≤": self.model.pxinclusivein(a, b),
+                  }
         self.entry2_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         self.update_shading()
 
@@ -685,10 +687,10 @@ class CalculationFrame(tk.Frame):
         p = np.float64(self.entry2_var.get())
         if self.combobox.get() not in ["< <", "≤ ≤"]:
             p_dict = {"<": self.model.xplessthan(p),
-                     "≤": self.model.xplessthanequalto(p),
-                     "≥": self.model.xpgreaterthanequalto(p),
-                     ">": self.model.xpgreaterthan(p),
-                     }
+                      "≤": self.model.xplessthanequalto(p),
+                      "≥": self.model.xpgreaterthanequalto(p),
+                      ">": self.model.xpgreaterthan(p),
+                      }
             self.entry1_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         else:
             a, b = self.model.xpexclusivein(p)
@@ -710,8 +712,8 @@ class CalculationFrame(tk.Frame):
         a = np.float64(self.entry3_var.get())
         b = np.float64(self.entry1_var.get())
         p_dict = {"< <": self.model.pxexclusivein(a, b),
-                 "≤ ≤": self.model.pxinclusivein(a, b),
-                 }
+                  "≤ ≤": self.model.pxinclusivein(a, b),
+                  }
         self.entry2_var.set(f"{p_dict[self.combobox.get()]:.4f}")
         self.update_shading()
 
@@ -722,14 +724,14 @@ class CalculationFrame(tk.Frame):
         Adjusts the bounds dictionary depending on whether the model is discrete or continuous.
         """
         try:
-            e1=np.float64(self.entry1_var.get())
+            e1 = np.float64(self.entry1_var.get())
         except ValueError:
-            e1=0
+            e1 = 0
 
         try:
-            e3=np.float64(self.entry3_var.get())
+            e3 = np.float64(self.entry3_var.get())
         except ValueError:
-            e3=0
+            e3 = 0
         if self.model.is_discrete:
             bounds_dict = {"<": {"shade_max": e1 - 1},
                            "≤": {"shade_max": e1},
@@ -991,6 +993,7 @@ class DiceCanvas(tk.Frame):
 
         self.place_widgets()
 
+    # noinspection DuplicatedCode
     def place_widgets(self) -> None:
         """
         Places the canvas, scrollbars, and rows of dice within the parent widget.
@@ -1110,7 +1113,7 @@ class ModeMenu:
         help_menu.add_separator()
         game_menu = tk.Menu(help_menu, tearoff=0)
         game_menu.add_command(label="", command=lambda: self.help_callback("N", "A"))  # Not Applicable
-        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N"))  #Applicable Not
+        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N"))  # Applicable Not
         help_menu.add_cascade(label="", menu=game_menu)
 
         self.menubar.add_cascade(label="Help", menu=help_menu)
@@ -1217,6 +1220,7 @@ class HelpWindow(tk.Toplevel):
 
         self.place_widgets()
 
+    # noinspection DuplicatedCode
     def place_widgets(self) -> None:
         """
         Places the canvas, scrollbars, and text within the new window using a grid layout.
@@ -1249,6 +1253,7 @@ class HelpWindow(tk.Toplevel):
 if __name__ == "__main__":
     the_root = tk.Tk()
     the_root.geometry("900x600")
-    calc=CalculationFrame(the_root,None,lambda x,y:print(x,y))
+    # noinspection PyTypeChecker
+    calc = CalculationFrame(the_root, None, lambda x, y: print(x, y))
     calc.pack()
     the_root.mainloop()

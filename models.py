@@ -4,7 +4,7 @@ import numpy as np
 import math
 from scipy.special import comb,gamma,gammainc
 
-from piecewisecubicsplines import piecewise_cubic_spline, piecewise_linear, merge_sort
+from fittingFunctions import piecewise_cubic_spline, piecewise_linear, merge_sort
 
 
 def integrate_nbic(x1: float, x2: float, a: float, b: float, c: float, d: float, n: int) -> float:
@@ -1919,7 +1919,7 @@ class AbstractDicetribution:
         n : int
             Number of rows to add. 1 by default.
         """
-        for i in range(int(n)):
+        for _ in range(int(n)):
             self.dice_data.append(self.get_dice_row())
         if n<0:
             self.remove_dice_row(n=-n)
@@ -1933,7 +1933,7 @@ class AbstractDicetribution:
         n : int
             Number of rows to remove. 1 by default.
         """
-        for i in range(int(n)):
+        for _ in range(int(n)):
             self.dice_data.pop()
 
     def set_n_dice_row(self, n:int)->None:

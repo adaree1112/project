@@ -18,15 +18,16 @@
 +++ ...
 +++ Files.svg
 +++ ...
-++ DraggablePoint.py
-++ LabelSpinbox.py
-++ LaTeXformulaimage.py
 ++ controller.py
-++ Piecewise.py
-++ piecewisecubicsplines.py
-++ PiecewiseGraph.py
+++ draggablePoint.py
+++ fittingFunctions.py
+++ helperWidgets.py
+++ LaTeXFormulaImage.py
+++ models.py
 ++ README.md
 ++ requirements.txt
+++ view.py
+++ widgets.py
 }
 }
 @endsalt
