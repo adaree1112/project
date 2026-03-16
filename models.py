@@ -60,7 +60,7 @@ def binary_search_for_x(target_p:float, minimum:float, maximum:float, func:calla
         A value x in [minimum, maximum] such that func(x) ≈ target_p
     """
     middle = (minimum + maximum) / 2
-    if np.isclose(func(middle), target_p, atol=1e-10):
+    if np.isclose(func(middle), target_p, atol=1e-15):
         return middle
     if func(middle) < target_p:
         return binary_search_for_x(target_p, middle, maximum, func)
