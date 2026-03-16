@@ -1098,6 +1098,7 @@ class ModeMenu:
         distribution_menu.add_command(label="Binomial", command=lambda: self.help_callback("Dist", "Binomial"))
         distribution_menu.add_command(label="Exponential", command=lambda: self.help_callback("Dist", "Exponential"))
         distribution_menu.add_command(label="Poisson", command=lambda: self.help_callback("Dist", "Poisson"))
+        distribution_menu.add_command(label="Chi Squared", command=lambda: self.help_callback("Dist", "ChiSquared"))
         help_menu.add_cascade(label="Distribution Calculation", menu=distribution_menu)
 
         dice_menu = tk.Menu(help_menu, tearoff=0)

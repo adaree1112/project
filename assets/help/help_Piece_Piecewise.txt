@@ -6,7 +6,7 @@ These points can be interpolated by using either cubic splines or linear segment
 The function can be normalised to represent a probability distribution.
 
 Example case:
-    - Modeling a custom-shaped probability function that is not standard.
+    - Modelling a custom-shaped probability function that is not standard.
     - Displaying cool graphs.
 
 Points:

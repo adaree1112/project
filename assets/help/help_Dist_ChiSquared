@@ -1,0 +1,23 @@
+Chi-Squared Distribution
+------------------------
+Sum of squared standard normal variables.
+X~χ²(ν)
+
+Example case:
+    - Goodness of fit test statistic.
+    - Test for independence in a contingency table.
+
+Assumes:
+    - Data is continuous and non-negative
+    - Derived from ν Standard Normal Variables
+
+Parameters:
+    - ν: Degrees of Freedom (ν>0)
+
+Expectation and Variance:
+    E(X) = ν
+    Var(X) = 2ν
+
+Probability Density Function (PDF):
+    f(x) = (x^((k/2)-1) · e^(-x/2)) / (2^(k/2) · Γ(k/2))    for x > 0
+    where Γ is the gamma function: Γ(n) = (n-1)! for positive integers
