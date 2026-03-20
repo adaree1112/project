@@ -1335,7 +1335,7 @@ class Binomial(AbstractStatisticalModel):
 
 class Poisson(AbstractStatisticalModel):
     """
-    Represents a Binomial distribution.
+    Represents a Poisson distribution.
 
     Attributes:
         parameters (dict): Dictionary containing 'lam' (average rate).
@@ -2249,7 +2249,7 @@ class BinDice(AbstractDicetribution):
         -------
         int
             the number of times that a success value appears in the row
-        """""
+        """
         self._check_n_changed()
         return count_multiple([die.num for die in row],self.success_vals)
 

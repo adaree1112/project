@@ -955,12 +955,12 @@ class DiceCanvas(tk.Frame):
     dice_vals_rows : list[tuple[list[int],int|float|None]]
         A list of tuples where each tuple consists of a list of dice and an optional value
     canvas : tk.Canvas
-        The canvas widget used tp make the frame scrollable.
+        The canvas widget used to make the frame scrollable.
     y_scrollbar : tk.Scrollbar
         The canvas's vertical scrollbar
     x_scrollbar : tk.Scrollbar
         The canvas's horizontal scrollbar.
-    scrollable_frame : tkk.Frame
+    scrollable_frame : ttk.Frame
         A frame inside the canvas that contains DiceRow instances.
 
     """
@@ -1080,10 +1080,10 @@ class ModeMenu:
         mode_menu.add_command(label="Piecewise Distribution", command=lambda: self.mode_callback("Piece"))
         mode_menu.add_separator()
 
-        game_menu = tk.Menu(mode_menu, tearoff=0)
-        game_menu.add_command(label="", command=lambda: self.open_game(0))
-        game_menu.add_command(label="", command=lambda: self.open_game(1))
-        mode_menu.add_cascade(label="", menu=game_menu)
+        # game_menu = tk.Menu(mode_menu, tearoff=0)
+        # game_menu.add_command(label="", command=lambda: self.open_game(0))
+        # game_menu.add_command(label="", command=lambda: self.open_game(1))
+        # mode_menu.add_cascade(label="", menu=game_menu)
         self.menubar.add_cascade(label="Mode", menu=mode_menu)
 
     def create_help_menu(self) -> None:
@@ -1111,11 +1111,11 @@ class ModeMenu:
         piecewise_menu.add_command(label="Piecewise", command=lambda: self.help_callback("Piece", "Piecewise"))
         help_menu.add_cascade(label="Piecewise Distribution", menu=piecewise_menu)
 
-        help_menu.add_separator()
-        game_menu = tk.Menu(help_menu, tearoff=0)
-        game_menu.add_command(label="", command=lambda: self.help_callback("N", "A"))  # Not Applicable
-        game_menu.add_command(label="", command=lambda: self.help_callback("A", "N"))  # Applicable Not
-        help_menu.add_cascade(label="", menu=game_menu)
+        # help_menu.add_separator()
+        # game_menu = tk.Menu(help_menu, tearoff=0)
+        # game_menu.add_command(label="", command=lambda: self.help_callback("N", "A"))  # Not Applicable
+        # game_menu.add_command(label="", command=lambda: self.help_callback("A", "N"))  # Applicable Not
+        # help_menu.add_cascade(label="", menu=game_menu)
 
         self.menubar.add_cascade(label="Help", menu=help_menu)
 
@@ -1179,12 +1179,12 @@ class HelpWindow(tk.Toplevel):
     Attributes
     ----------
     canvas : tk.Canvas
-        The canvas widget used tp make the frame scrollable.
+        The canvas widget used to make the frame scrollable.
     y_scrollbar : tk.Scrollbar
         The canvas's vertical scrollbar
     x_scrollbar : tk.Scrollbar
         The canvas's horizontal scrollbar.
-    scrollable_frame : tkk.Frame
+    scrollable_frame : ttk.Frame
         A frame inside the canvas that contains DiceRow instances.
     label : tk.Label
         The label that displays the provided text.

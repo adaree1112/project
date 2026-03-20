@@ -33,7 +33,7 @@ Simulated Expectation and Variance:
 
 Real Expectation and Variance:
     E(X) = μ = 3.5
-    Var(X) = σ² / n 35 / (12 * n)
+    Var(X) = σ² / n = 35 / (12 * n)
 
 Probability Density Function (PDF):
     f(x) = (1 / (σ * sqrt(2 * π))) * (e^(-0.5 * ((x-μ) / σ)^2))

@@ -1,6 +1,7 @@
 @startuml
 skinparam classAttributeIconSize 0
 skinparam defaultFontSize 11
+skinparam linetype ortho
 
 class PiecewiseGraph {
   + controller: Controller
