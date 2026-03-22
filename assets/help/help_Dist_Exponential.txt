@@ -6,7 +6,7 @@ X~Exp(λ)
 
 Example case:
     - Time until the next train at a station.
-    - Time until the next phone call at a call center.
+    - Time until the next phone call at a call centre.
 
 Assumes:
     - The events occur with a constant average rate
